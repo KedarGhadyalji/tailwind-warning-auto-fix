@@ -1,0 +1,94 @@
+{
+  "name": "tailwind-warning-auto-fix",
+  "displayName": "Tailwind Warning Auto-Fix",
+  "description": "Automatically fixes every Tailwind CSS IntelliSense optimization warning in the active file with one command — no more clicking Quick Fix one class at a time.",
+  "version": "0.0.1",
+  "publisher": "kedar-ghadyalji",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Formatters",
+    "Other"
+  ],
+  "keywords": [
+    "tailwind",
+    "tailwindcss",
+    "css",
+    "intellisense",
+    "optimization",
+    "quick fix",
+    "auto fix",
+    "formatter"
+  ],
+  "icon": "images/icon.png",
+  "galleryBanner": {
+    "color": "#0F172A",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KedarGhadyalji/tailwind-warning-auto-fix.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KedarGhadyalji/tailwind-warning-auto-fix/issues"
+  },
+  "homepage": "https://github.com/KedarGhadyalji/tailwind-warning-auto-fix#readme",
+  "license": "MIT",
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "tailwindAutoOptimizer.autoFixOptimizationWarnings",
+        "title": "Auto Fix Optimization Warnings",
+        "category": "Tailwind",
+        "icon": "$(sparkle)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "tailwindAutoOptimizer.autoFixOptimizationWarnings",
+        "key": "ctrl+alt+t",
+        "mac": "cmd+alt+t",
+        "when": "editorTextFocus"
+      }
+    ],
+    "configuration": {
+      "title": "Tailwind Warning Auto-Fix",
+      "properties": {
+        "tailwindAutoOptimizer.confirmBeforeApply": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a confirmation dialog before applying all fixes."
+        },
+        "tailwindAutoOptimizer.showSummary": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a summary notification after fixes are applied."
+        },
+        "tailwindAutoOptimizer.autoFixOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Reserved for a future release. Currently has no effect."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "@vscode/vsce": "^2.29.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.5.0"
+  }
+}
