@@ -12,8 +12,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto Fix on Save
 - Workspace-wide Fix All command
 - CodeActionProvider / lightbulb integration
-- Status bar button
 - Unit and integration test suite
+
+## [0.2.0]
+
+### Changed
+
+- **Consolidated into a single command**, `Tailwind: Fix All Warnings` (`Ctrl+Alt+G` / `Cmd+Alt+G`), replacing the two separate commands from 0.1.0. It now scans for optimization warnings and class conflicts together, applies optimizations automatically after one confirmation, walks through conflicts one at a time via Quick Pick, and combines everything into a single atomic `WorkspaceEdit` — one Undo reverts the whole operation.
+- Consolidated the two status bar buttons into one: **✨ Fix Tailwind Warnings**.
+
+## [0.1.0]
+
+### Added
+
+- `Tailwind: Resolve Class Conflicts` command that walks through every class-conflict warning (e.g. `'text-left' applies the same CSS properties as 'text-center'`) one at a time, asking which class to keep via Quick Pick.
+- Keyboard shortcut (`Ctrl+Alt+C` / `Cmd+Alt+C`) and status bar button (**⚠️ Resolve Conflicts**) for the new command.
+
+### Fixed
+
+- The optimization scan no longer mislabels class-conflict diagnostics as "skipped because they couldn't be parsed" — they're now recognized as a distinct, valid category handled by the new command instead.
 
 ## [0.0.1] - Initial Development
 

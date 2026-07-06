@@ -28,16 +28,30 @@ It does **not** reimplement Tailwind's optimization logic — it's a thin, safe 
 
 ## Features
 
-- ✅ Fixes **all** Tailwind optimization warnings in the active file with one command
-- ✅ Applies every replacement in a single `WorkspaceEdit` — one Undo (`Cmd/Ctrl+Z`) reverts everything
+- ✅ **One command** fixes optimization warnings AND walks you through class conflicts — no separate commands to remember
+- ✅ Fixes **all** Tailwind optimization warnings in the active file automatically, after one confirmation
+- ✅ Interactively resolves **class conflicts** (e.g. `text-left` vs `text-center`) — always asks which class should stay, since these are NOT safe to auto-resolve (see "Optimization vs. Conflicts" below)
+- ✅ Applies everything in a single `WorkspaceEdit` — one Undo (`Cmd/Ctrl+Z`) reverts the entire operation, optimizations and conflict resolutions together
 - ✅ Uses each diagnostic's exact source range — never a document-wide text search, so it's safe even when the same class string appears multiple times in a file
 - ✅ Works in any file type supported by Tailwind CSS IntelliSense (JS, TS, JSX, TSX, HTML, Vue, Astro, Svelte, PHP, Blade, MDX, and more) — no hardcoded language list
-- ✅ Confirms before applying, and reports a clear summary afterward
 - ✅ Gracefully skips and reports any warning it can't safely parse, instead of failing the whole batch
 
 ![Screenshot placeholder: Before/after diff view](./images/screenshot-before-after.png)
 
 ![GIF placeholder: Running the command end-to-end](./images/demo.gif)
+
+## Optimization vs. Conflicts — why they're handled differently within the same command
+
+Tailwind CSS IntelliSense produces two distinct kinds of warnings, and even though **one command** now handles both, they're resolved very differently internally:
+
+|             | Optimization warnings                                          | Conflict warnings                                                                                                                                                |
+| ----------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Example     | `` The class `max-w-[1600px]` can be written as `max-w-400` `` | `'text-left' applies the same CSS properties as 'text-center'.`                                                                                                  |
+| Meaning     | Two forms that render **identically**                          | Two **different**, mutually exclusive values for the same property — only one actually applies                                                                   |
+| Applied how | Automatically, after one confirmation covering all of them     | **One decision per conflict**, via Quick Pick — never automatic, even though it's the same command                                                               |
+| Why         | Safe — no visual change is possible                            | Removing the wrong side would silently change how the page renders, since Tailwind's effective precedence isn't based on the order classes appear in your markup |
+
+Both categories are still combined into a single atomic edit at the end, so you only ever hit Undo once no matter how many of each type were involved.
 
 ---
 
@@ -66,37 +80,38 @@ code --install-extension tailwind-warning-auto-fix-0.0.1.vsix
 
 ## Usage
 
-Open a file containing Tailwind classes with active optimization warnings (visible in the Problems panel), then trigger the fix in any of three ways:
+Open a file containing Tailwind classes with active warnings (visible in the Problems panel), then trigger the fix in any of three ways:
 
-- **Command Palette** — `Cmd/Ctrl+Shift+P` → run `Tailwind: Auto Fix Optimization Warnings`
-- **Keyboard shortcut** — `Ctrl+Alt+T` (Windows/Linux) or `Cmd+Alt+T` (Mac), while focused in the editor
-- **Status bar button** — click **✨ Tailwind Fix** in the bottom-right status bar
+- **Command Palette** — `Cmd/Ctrl+Shift+P` → run `Tailwind: Fix All Warnings`
+- **Keyboard shortcut** — `Ctrl+Alt+G` (Windows/Linux) or `Cmd+Alt+G` (Mac), while focused in the editor
+- **Status bar button** — click **✨ Fix Tailwind Warnings** in the bottom-right status bar
 
 All three trigger the identical flow:
 
-1. Review the confirmation dialog showing how many warnings were found.
-2. Click **Apply**.
-3. A summary notification confirms how many fixes were applied (and how many, if any, were skipped).
+1. If any optimization warnings were found, review the confirmation dialog and click **Apply** (skipped automatically if there are none).
+2. For each class conflict found, a Quick Pick asks which of the two classes should stay — answer each one, or choose "Skip" to leave it untouched.
+3. Everything is applied together in one edit, and a summary notification confirms what changed.
 
-> **Rebinding the shortcut:** if `Ctrl+Alt+T`/`Cmd+Alt+T` conflicts with another shortcut or your OS (some Linux distributions bind this to opening a terminal), open **Keyboard Shortcuts** (`Cmd/Ctrl+K Cmd/Ctrl+S`), search for "Tailwind: Auto Fix Optimization Warnings", and rebind it to whatever you prefer.
+> **Rebinding the shortcut:** if `Ctrl+Alt+G`/`Cmd+Alt+G` conflicts with another shortcut, open **Keyboard Shortcuts** (`Cmd/Ctrl+K Cmd/Ctrl+S`), search for "Tailwind: Fix All Warnings", and rebind it to whatever you prefer.
 
 ### What you'll see
 
-| Situation                            | Message                                                                 |
-| ------------------------------------ | ----------------------------------------------------------------------- |
-| No file open                         | `Open a file first.`                                                    |
-| No optimization warnings in the file | `No Tailwind optimization warnings found.`                              |
-| Warnings found                       | `Found 18 Tailwind optimization warnings. Apply all fixes?`             |
-| All fixes applied                    | `Successfully fixed 18 Tailwind optimization warnings.`                 |
-| Some warnings unparsable             | `18 fixes applied. 2 warnings skipped because they couldn't be parsed.` |
+| Situation                   | Message                                                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------------------------------- |
+| No file open                | `Open a file first.`                                                                                     |
+| No warnings in the file     | `No Tailwind warnings found.`                                                                            |
+| Optimization warnings found | `Found 18 Tailwind optimization warnings. Apply all fixes?`                                              |
+| A class conflict found      | Quick Pick: `Keep 'text-left', remove 'text-center'` / `Keep 'text-center', remove 'text-left'` / `Skip` |
+| Everything applied          | `18 optimizations fixed, 2 conflicts resolved.`                                                          |
+| Some warnings unparsable    | `18 optimizations fixed, 2 conflicts resolved. 3 warnings skipped.`                                      |
 
 ---
 
 ## Commands
 
-| Command                                    | Shortcut                   | Description                                                                                                                                            |
-| ------------------------------------------ | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Tailwind: Auto Fix Optimization Warnings` | `Ctrl+Alt+T` / `Cmd+Alt+T` | Scans the active file's diagnostics and fixes every Tailwind optimization warning found. Also available via the **✨ Tailwind Fix** status bar button. |
+| Command                      | Shortcut                   | Description                                                                                                                                                                                                                                                                                                       |
+| ---------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tailwind: Fix All Warnings` | `Ctrl+Alt+G` / `Cmd+Alt+G` | Scans the active file for both optimization warnings and class conflicts. Applies optimizations automatically (after one confirmation) and walks through conflicts one at a time via Quick Pick — all combined into a single, atomic edit. Also available via the **✨ Fix Tailwind Warnings** status bar button. |
 
 ---
 
