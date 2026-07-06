@@ -38,7 +38,7 @@ It does **not** reimplement Tailwind's optimization logic — it's a thin, safe 
 
 ![Screenshot placeholder: Before/after diff view](./images/screenshot-before-after.png)
 
-![GIF placeholder: Running the command end-to-end](./images/demo.gif)
+<!-- ![GIF placeholder: Running the command end-to-end](./images/demo.gif) -->
 
 ## Optimization vs. Conflicts — why they're handled differently within the same command
 
