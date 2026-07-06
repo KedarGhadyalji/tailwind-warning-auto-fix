@@ -2,8 +2,8 @@
   "name": "tailwind-warning-auto-fix",
   "displayName": "Tailwind Warning Auto-Fix",
   "description": "Automatically fixes every Tailwind CSS IntelliSense optimization warning in the active file with one command — no more clicking Quick Fix one class at a time.",
-  "version": "0.0.1",
-  "publisher": "kedar-ghadyalji",
+  "version": "0.2.0",
+  "publisher": "KedarGhadyalji",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -28,29 +28,29 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/KedarGhadyalji/tailwind-warning-auto-fix.git"
+    "url": "https://github.com/your-publisher-name/tailwind-warning-auto-fix.git"
   },
   "bugs": {
-    "url": "https://github.com/KedarGhadyalji/tailwind-warning-auto-fix/issues"
+    "url": "https://github.com/your-publisher-name/tailwind-warning-auto-fix/issues"
   },
-  "homepage": "https://github.com/KedarGhadyalji/tailwind-warning-auto-fix#readme",
+  "homepage": "https://github.com/your-publisher-name/tailwind-warning-auto-fix#readme",
   "license": "MIT",
   "main": "./out/extension.js",
   "activationEvents": [],
   "contributes": {
     "commands": [
       {
-        "command": "tailwindAutoOptimizer.autoFixOptimizationWarnings",
-        "title": "Auto Fix Optimization Warnings",
+        "command": "tailwindAutoOptimizer.fixAllWarnings",
+        "title": "Fix All Warnings",
         "category": "Tailwind",
         "icon": "$(sparkle)"
       }
     ],
     "keybindings": [
       {
-        "command": "tailwindAutoOptimizer.autoFixOptimizationWarnings",
-        "key": "ctrl+alt+t",
-        "mac": "cmd+alt+t",
+        "command": "tailwindAutoOptimizer.fixAllWarnings",
+        "key": "ctrl+alt+g",
+        "mac": "cmd+alt+g",
         "when": "editorTextFocus"
       }
     ],
@@ -80,6 +80,7 @@
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
     "package": "vsce package",
+    "publish:openvsx": "ovsx publish",
     "vscode:prepublish": "npm run compile"
   },
   "devDependencies": {
@@ -89,6 +90,7 @@
     "@typescript-eslint/parser": "^7.16.0",
     "@vscode/vsce": "^2.29.0",
     "eslint": "^8.57.0",
+    "ovsx": "^1.0.2",
     "typescript": "^5.5.0"
   }
 }
