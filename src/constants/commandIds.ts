@@ -3,6 +3,5 @@
  * `contributes.commands`. Centralizing avoids drift between the two.
  */
 export const Commands = {
-  autoFixOptimizationWarnings:
-    "tailwindAutoOptimizer.autoFixOptimizationWarnings",
+  fixAllWarnings: "tailwindAutoOptimizer.fixAllWarnings",
 } as const;

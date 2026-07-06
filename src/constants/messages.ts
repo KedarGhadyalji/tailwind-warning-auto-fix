@@ -5,28 +5,56 @@
  *  - Easy consistency review before Marketplace release
  */
 export const Messages = {
-  scanning: "Scanning Tailwind optimization warnings...",
+  scanning: "Scanning Tailwind warnings...",
   noActiveEditor: "Open a file first.",
-  noWarningsFound: "No Tailwind optimization warnings found.",
+  noWarningsFound: "No Tailwind warnings found.",
 
+  // The confirmation dialog only ever covers the optimization count —
+  // conflicts always get their own individual Quick Pick regardless, so
+  // there's nothing to batch-confirm for that category.
   confirmApplyTitle: (count: number): string =>
     `Found ${count} Tailwind optimization warning${count === 1 ? "" : "s"}.`,
   confirmApplyDetail: "Apply all fixes?",
   confirmApplyButton: "Apply",
   cancelButton: "Cancel",
 
-  applyCancelled: "Auto-fix cancelled.",
-
-  successAllApplied: (count: number): string =>
-    `Successfully fixed ${count} Tailwind optimization warning${count === 1 ? "" : "s"}.`,
-
-  successWithSkipped: (appliedCount: number, skippedCount: number): string =>
-    `${appliedCount} fix${appliedCount === 1 ? "" : "es"} applied.\n\n` +
-    `${skippedCount} warning${skippedCount === 1 ? "" : "s"} skipped because ` +
-    `${skippedCount === 1 ? "it couldn't" : "they couldn't"} be parsed.`,
+  applyCancelled: "No changes were made.",
 
   editFailed: "Failed to apply Tailwind fixes. No changes were made.",
 
   unexpectedError:
     "An unexpected error occurred while fixing Tailwind warnings.",
+
+  /**
+   * The single combined summary shown after the unified "Fix All Warnings"
+   * command finishes — covers optimizations applied, conflicts resolved,
+   * and anything skipped, in one readable sentence rather than two
+   * disconnected notifications.
+   */
+  fixAllSummary: (
+    optimizedCount: number,
+    conflictsResolvedCount: number,
+    skippedCount: number,
+  ): string => {
+    const parts: string[] = [];
+
+    if (optimizedCount > 0) {
+      parts.push(
+        `${optimizedCount} optimization${optimizedCount === 1 ? "" : "s"} fixed`,
+      );
+    }
+
+    if (conflictsResolvedCount > 0) {
+      parts.push(
+        `${conflictsResolvedCount} conflict${conflictsResolvedCount === 1 ? "" : "s"} resolved`,
+      );
+    }
+
+    const base =
+      parts.length > 0 ? `${parts.join(", ")}.` : "No changes applied.";
+
+    return skippedCount > 0
+      ? `${base} ${skippedCount} warning${skippedCount === 1 ? "" : "s"} skipped.`
+      : base;
+  },
 } as const;

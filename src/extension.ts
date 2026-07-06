@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { Commands } from "./constants/commandIds";
-import { runAutoFixCommand } from "./commands/autoFixCommand";
+import { runFixAllCommand } from "./commands/fixAllCommand";
 import { ConfigService } from "./services/configService";
 import { Logger } from "./utils/logger";
 import { createStatusBarItem } from "./utils/statusBar";
@@ -27,8 +27,8 @@ export function activate(context: vscode.ExtensionContext): void {
   logger.info("Tailwind Warning Auto-Fix activated.");
 
   const commandDisposable = vscode.commands.registerCommand(
-    Commands.autoFixOptimizationWarnings,
-    () => runAutoFixCommand(logger, configService),
+    Commands.fixAllWarnings,
+    () => runFixAllCommand(logger, configService),
   );
 
   const statusBarItem = createStatusBarItem();
