@@ -2,8 +2,9 @@ import * as vscode from "vscode";
 import { Commands } from "../constants/commandIds";
 
 /**
- * Creates the status bar item that gives users one-click access to the
- * auto-fix command, without needing the Command Palette or the keybinding.
+ * Creates the single status bar item that gives users one-click access to
+ * the unified fix-all command, without needing the Command Palette or the
+ * keybinding.
  *
  * Returned as a Disposable so extension.ts can push it into
  * context.subscriptions alongside every other resource — consistent with
@@ -21,9 +22,9 @@ export function createStatusBarItem(): vscode.StatusBarItem {
     100,
   );
 
-  item.text = "$(sparkle) Tailwind Fix";
-  item.tooltip = "Auto Fix Optimization Warnings (Ctrl+Alt+T / Cmd+Alt+T)";
-  item.command = Commands.autoFixOptimizationWarnings;
+  item.text = "$(sparkle) Fix Tailwind Warnings";
+  item.tooltip = "Fix All Tailwind Warnings (Ctrl+Alt+G / Cmd+Alt+G)";
+  item.command = Commands.fixAllWarnings;
   item.show();
 
   return item;
