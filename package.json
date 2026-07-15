@@ -2,7 +2,7 @@
   "name": "tailwind-warning-auto-fix",
   "displayName": "Tailwind Warning Auto-Fix",
   "description": "Automatically fixes every Tailwind CSS IntelliSense optimization warning in the active file with one command — no more clicking Quick Fix one class at a time.",
-  "version": "0.2.0",
+  "version": "0.4.2",
   "publisher": "KedarGhadyalji",
   "engines": {
     "vscode": "^1.90.0"
@@ -36,7 +36,9 @@
   "homepage": "https://github.com/your-publisher-name/tailwind-warning-auto-fix#readme",
   "license": "MIT",
   "main": "./out/extension.js",
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "contributes": {
     "commands": [
       {
@@ -60,17 +62,29 @@
         "tailwindAutoOptimizer.confirmBeforeApply": {
           "type": "boolean",
           "default": true,
-          "description": "Show a confirmation dialog before applying all fixes."
+          "description": "Show a confirmation dialog before applying optimization fixes."
         },
         "tailwindAutoOptimizer.showSummary": {
           "type": "boolean",
           "default": true,
-          "description": "Show a summary notification after fixes are applied."
+          "description": "Show a summary notification after Tailwind: Fix All Warnings finishes."
         },
         "tailwindAutoOptimizer.autoFixOnSave": {
           "type": "boolean",
           "default": false,
-          "description": "Reserved for a future release. Currently has no effect."
+          "description": "Automatically fix Tailwind optimization warnings whenever a file is saved, silently and with no confirmation dialog. Class conflicts are never auto-resolved on save — see conflictResolutionStrategy for manual runs."
+        },
+        "tailwindAutoOptimizer.conflictResolutionStrategy": {
+          "type": "string",
+          "enum": ["ask", "keepFirst", "keepLast", "skip"],
+          "enumDescriptions": [
+            "Ask which class to keep for each unique conflicting pair (default, safest).",
+            "Automatically keep whichever class appears FIRST in the markup for every conflict, no prompt. NOT guaranteed to match what actually renders — Tailwind's real precedence depends on its internal stylesheet order, not markup order. Can silently change page appearance.",
+            "Automatically keep whichever class appears LAST in the markup for every conflict, no prompt. Same accuracy risk as keepFirst, just the opposite choice.",
+            "Never touch class conflicts automatically — they remain visible in the Problems panel only."
+          ],
+          "default": "ask",
+          "description": "How to resolve Tailwind class conflicts (e.g. 'text-left' vs 'text-center') when running Fix All Warnings. The default, 'ask', shows one confirmation per UNIQUE conflicting pair (repeats of the same pair reuse your answer automatically). The 'keepFirst'/'keepLast' options remove the review step entirely but are NOT guaranteed to keep the class that's actually rendering — use only if you accept that trade-off."
         }
       }
     }
