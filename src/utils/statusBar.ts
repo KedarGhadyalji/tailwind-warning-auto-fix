@@ -1,5 +1,5 @@
-import * as vscode from "vscode";
-import { Commands } from "../constants/commandIds";
+import * as vscode from 'vscode';
+import { Commands } from '../constants/commandIds';
 
 /**
  * Creates the single status bar item that gives users one-click access to
@@ -19,11 +19,11 @@ import { Commands } from "../constants/commandIds";
 export function createStatusBarItem(): vscode.StatusBarItem {
   const item = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
-    100,
+    100
   );
 
-  item.text = "$(sparkle) Fix Tailwind Warnings";
-  item.tooltip = "Fix All Tailwind Warnings (Ctrl+Alt+G / Cmd+Alt+G)";
+  item.text = '$(sparkle) Fix Tailwind Warnings';
+  item.tooltip = 'Fix All Tailwind Warnings (Ctrl+Alt+G / Cmd+Alt+G)';
   item.command = Commands.fixAllWarnings;
   item.show();
 

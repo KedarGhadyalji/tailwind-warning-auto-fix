@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
 
 /**
  * Centralized logger backed by a VS Code OutputChannel.
@@ -20,15 +20,15 @@ export class Logger {
   }
 
   public info(message: string): void {
-    this.write("INFO", message);
+    this.write('INFO', message);
   }
 
   public warn(message: string): void {
-    this.write("WARN", message);
+    this.write('WARN', message);
   }
 
   public error(message: string, error?: unknown): void {
-    this.write("ERROR", message);
+    this.write('ERROR', message);
     if (error instanceof Error) {
       this.channel.appendLine(error.stack ?? error.message);
     } else if (error !== undefined) {

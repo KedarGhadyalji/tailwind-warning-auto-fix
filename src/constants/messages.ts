@@ -5,25 +5,24 @@
  *  - Easy consistency review before Marketplace release
  */
 export const Messages = {
-  scanning: "Scanning Tailwind warnings...",
-  noActiveEditor: "Open a file first.",
-  noWarningsFound: "No Tailwind warnings found.",
+  scanning: 'Scanning Tailwind warnings...',
+  noActiveEditor: 'Open a file first.',
+  noWarningsFound: 'No Tailwind warnings found.',
 
   // The confirmation dialog only ever covers the optimization count —
   // conflicts always get their own individual Quick Pick regardless, so
   // there's nothing to batch-confirm for that category.
   confirmApplyTitle: (count: number): string =>
-    `Found ${count} Tailwind optimization warning${count === 1 ? "" : "s"}.`,
-  confirmApplyDetail: "Apply all fixes?",
-  confirmApplyButton: "Apply",
-  cancelButton: "Cancel",
+    `Found ${count} Tailwind optimization warning${count === 1 ? '' : 's'}.`,
+  confirmApplyDetail: 'Apply all fixes?',
+  confirmApplyButton: 'Apply',
+  cancelButton: 'Cancel',
 
-  applyCancelled: "No changes were made.",
+  applyCancelled: 'No changes were made.',
 
-  editFailed: "Failed to apply Tailwind fixes. No changes were made.",
+  editFailed: 'Failed to apply Tailwind fixes. No changes were made.',
 
-  unexpectedError:
-    "An unexpected error occurred while fixing Tailwind warnings.",
+  unexpectedError: 'An unexpected error occurred while fixing Tailwind warnings.',
 
   /**
    * The single combined summary shown after the unified "Fix All Warnings"
@@ -34,27 +33,24 @@ export const Messages = {
   fixAllSummary: (
     optimizedCount: number,
     conflictsResolvedCount: number,
-    skippedCount: number,
+    skippedCount: number
   ): string => {
     const parts: string[] = [];
 
     if (optimizedCount > 0) {
-      parts.push(
-        `${optimizedCount} optimization${optimizedCount === 1 ? "" : "s"} fixed`,
-      );
+      parts.push(`${optimizedCount} optimization${optimizedCount === 1 ? '' : 's'} fixed`);
     }
 
     if (conflictsResolvedCount > 0) {
       parts.push(
-        `${conflictsResolvedCount} conflict${conflictsResolvedCount === 1 ? "" : "s"} resolved`,
+        `${conflictsResolvedCount} conflict${conflictsResolvedCount === 1 ? '' : 's'} resolved`
       );
     }
 
-    const base =
-      parts.length > 0 ? `${parts.join(", ")}.` : "No changes applied.";
+    const base = parts.length > 0 ? `${parts.join(', ')}.` : 'No changes applied.';
 
     return skippedCount > 0
-      ? `${base} ${skippedCount} warning${skippedCount === 1 ? "" : "s"} skipped.`
+      ? `${base} ${skippedCount} warning${skippedCount === 1 ? '' : 's'} skipped.`
       : base;
   },
 } as const;
