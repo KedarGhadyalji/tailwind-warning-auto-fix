@@ -1,4 +1,4 @@
-import { TAILWIND_OPTIMIZATION_MESSAGE_PATTERN } from "../constants/regex";
+import { TAILWIND_OPTIMIZATION_MESSAGE_PATTERN } from '../constants/regex';
 
 /**
  * Result of successfully parsing a Tailwind optimization warning message.
@@ -26,7 +26,7 @@ export interface ParsedClassPair {
  *          the expected Tailwind optimization warning format.
  */
 export function parseTailwindOptimizationMessage(
-  message: string,
+  message: string
 ): ParsedClassPair | null {
   const match = TAILWIND_OPTIMIZATION_MESSAGE_PATTERN.exec(message.trim());
 

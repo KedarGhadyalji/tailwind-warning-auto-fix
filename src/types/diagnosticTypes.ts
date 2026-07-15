@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
 
 /**
  * Represents a single Tailwind optimization warning after it has been
@@ -80,10 +80,10 @@ export interface ConflictScanResult {
 }
 
 /** The user's explicit choice for a single paired conflict. */
-export type PairedConflictResolution = "keepA" | "keepB" | "skip";
+export type PairedConflictResolution = 'keepA' | 'keepB' | 'skip';
 
 /** The user's explicit choice for a single unpaired conflict. */
-export type SingleConflictResolution = "remove" | "skip";
+export type SingleConflictResolution = 'remove' | 'skip';
 
 /**
  * The final outcome after a WorkspaceEdit has been attempted, used to build

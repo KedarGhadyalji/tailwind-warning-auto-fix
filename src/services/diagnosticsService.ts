@@ -1,7 +1,7 @@
-import * as vscode from "vscode";
-import { TAILWIND_DIAGNOSTIC_SOURCE } from "../constants/regex";
-import { parseTailwindOptimizationMessage } from "../parsers/diagnosticParser";
-import { parseTailwindConflictMessage } from "../parsers/conflictParser";
+import * as vscode from 'vscode';
+import { TAILWIND_DIAGNOSTIC_SOURCE_HINT } from '../constants/regex';
+import { parseTailwindOptimizationMessage } from '../parsers/diagnosticParser';
+import { parseTailwindConflictMessage } from '../parsers/conflictParser';
 import {
   ConflictPair,
   ConflictScanResult,
@@ -9,8 +9,8 @@ import {
   ParsedConflictDiagnostic,
   ParsedTailwindDiagnostic,
   SkippedDiagnostic,
-} from "../types/diagnosticTypes";
-import { Logger } from "../utils/logger";
+} from '../types/diagnosticTypes';
+import { Logger } from '../utils/logger';
 
 /**
  * Determines whether a diagnostic is *likely* to originate from the
@@ -20,8 +20,11 @@ import { Logger } from "../utils/logger";
  * extension must work across JS/TS/JSX/TSX/HTML/Vue/Astro/Svelte/PHP/
  * Blade/MDX/etc. without a hardcoded list). Instead we rely on:
  *
- *  1. `diagnostic.source` matching the known Tailwind CSS IntelliSense
- *     source string (fast, cheap, primary signal).
+ *  1. `diagnostic.source` containing "tailwind" (case-insensitive) — a
+ *     loose substring match rather than an exact string comparison, since
+ *     the exact casing/format of this field can vary and an exact match
+ *     risked silently excluding every diagnostic if it ever differed from
+ *     a single hardcoded string.
  *  2. As a fallback, diagnostics with no source (some language server
  *     configurations omit it) are still allowed through to the parser —
  *     the parser's strict message-shape check is the real safety net,
@@ -29,7 +32,7 @@ import { Logger } from "../utils/logger";
  */
 function isLikelyTailwindDiagnostic(diagnostic: vscode.Diagnostic): boolean {
   if (diagnostic.source) {
-    return diagnostic.source === TAILWIND_DIAGNOSTIC_SOURCE;
+    return diagnostic.source.toLowerCase().includes(TAILWIND_DIAGNOSTIC_SOURCE_HINT);
   }
   // No source metadata present — defer the decision to message-shape parsing.
   return true;
@@ -43,16 +46,16 @@ function isLikelyTailwindDiagnostic(diagnostic: vscode.Diagnostic): boolean {
  * "skipped" rather than silently dropped, per the requirement to report
  * skipped counts to the user. Diagnostics that turn out to be CONFLICT
  * warnings (a distinct, separately-handled category — see
- * conflictsCommand.ts) are excluded from both `parsed` and `skipped`
- * entirely, since mislabeling a known category as "unparsable" would be
- * misleading — they're handled correctly, just by a different command.
+ * fixAllCommand.ts) are excluded from both `parsed` and `skipped` entirely,
+ * since mislabeling a known category as "unparsable" would be misleading —
+ * they're handled correctly, just by a different code path.
  *
  * This function ONLY reads `vscode.languages.getDiagnostics(uri)` — it never
  * scans document text, per the "never perform a global text search" rule.
  */
 export function scanTailwindDiagnostics(
   document: vscode.TextDocument,
-  logger: Logger,
+  logger: Logger
 ): DiagnosticScanResult {
   const allDiagnostics = vscode.languages.getDiagnostics(document.uri);
 
@@ -77,25 +80,25 @@ export function scanTailwindDiagnostics(
 
     // Not an optimization warning — check if it's a known conflict warning
     // before concluding it's genuinely unparsable. Conflicts are handled by
-    // a separate command/scan, not counted as a failure here.
+    // a separate scan/flow, not counted as a failure here.
     if (parseTailwindConflictMessage(diagnostic.message) !== null) {
       continue;
     }
 
-    if (diagnostic.source === TAILWIND_DIAGNOSTIC_SOURCE) {
+    if (diagnostic.source?.toLowerCase().includes(TAILWIND_DIAGNOSTIC_SOURCE_HINT)) {
       skipped.push({
         diagnostic,
-        reason: "Message did not match any known Tailwind warning format.",
+        reason: 'Message did not match any known Tailwind warning format.',
       });
       logger.warn(
-        `Skipped unparsable Tailwind diagnostic: "${diagnostic.message}"`,
+        `Skipped unparsable Tailwind diagnostic: "${diagnostic.message}"`
       );
     }
   }
 
   logger.info(
     `Optimization scan complete: ${parsed.length} parsed, ${skipped.length} skipped, ` +
-      `${allDiagnostics.length} total diagnostics inspected.`,
+      `${allDiagnostics.length} total diagnostics inspected.`
   );
 
   return { parsed, skipped };
@@ -119,7 +122,7 @@ export function scanTailwindDiagnostics(
  */
 export function scanTailwindConflicts(
   document: vscode.TextDocument,
-  logger: Logger,
+  logger: Logger
 ): ConflictScanResult {
   const allDiagnostics = vscode.languages.getDiagnostics(document.uri);
   const candidates: ParsedConflictDiagnostic[] = [];
@@ -160,8 +163,7 @@ export function scanTailwindConflicts(
       }
 
       const distance = Math.abs(
-        other.diagnostic.range.start.line -
-          candidate.diagnostic.range.start.line,
+        other.diagnostic.range.start.line - candidate.diagnostic.range.start.line
       );
 
       if (distance < bestDistance) {
@@ -181,7 +183,7 @@ export function scanTailwindConflicts(
 
   logger.info(
     `Conflict scan complete: ${pairs.length} paired, ${unpaired.length} unpaired, ` +
-      `${candidates.length} total conflict diagnostics found.`,
+      `${candidates.length} total conflict diagnostics found.`
   );
 
   return { pairs, unpaired };

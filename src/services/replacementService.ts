@@ -1,6 +1,6 @@
-import * as vscode from "vscode";
-import { ParsedTailwindDiagnostic } from "../types/diagnosticTypes";
-import { Logger } from "../utils/logger";
+import * as vscode from 'vscode';
+import { ParsedTailwindDiagnostic } from '../types/diagnosticTypes';
+import { Logger } from '../utils/logger';
 
 /**
  * Result of attempting to apply a batch of Tailwind class replacements.
@@ -46,17 +46,22 @@ function rangesOverlap(a: vscode.Range, b: vscode.Range): boolean {
  * item's range, returns the subset with no mutual overlaps, excluding
  * later-appearing items when a conflict is found (deterministic tie-break
  * by document order). Shared by every edit-producing path in this file —
- * optimization replacements, conflict removals, and the combined fix —
- * so there is exactly one place this safety-critical logic lives.
+ * optimization replacements, conflict removals, the combined fix, and the
+ * save-time edit builder — so there is exactly one place this
+ * safety-critical logic lives.
+ *
+ * Kept private to this module deliberately: it's an internal safety
+ * mechanism for edit construction, not a general-purpose utility other
+ * layers should reach for directly.
  */
 function excludeOverlapping<T>(
   items: readonly T[],
   getRange: (item: T) => vscode.Range,
   describe: (item: T) => string,
-  logger: Logger,
+  logger: Logger
 ): { accepted: T[]; excludedCount: number } {
   const sorted = [...items].sort((a, b) =>
-    getRange(a).start.isBefore(getRange(b).start) ? -1 : 1,
+    getRange(a).start.isBefore(getRange(b).start) ? -1 : 1
   );
 
   const accepted: T[] = [];
@@ -64,7 +69,7 @@ function excludeOverlapping<T>(
 
   for (const candidate of sorted) {
     const overlapsExisting = accepted.some((existing) =>
-      rangesOverlap(getRange(existing), getRange(candidate)),
+      rangesOverlap(getRange(existing), getRange(candidate))
     );
 
     if (overlapsExisting) {
@@ -93,18 +98,18 @@ function excludeOverlapping<T>(
  */
 function computeDeletionRange(
   document: vscode.TextDocument,
-  range: vscode.Range,
+  range: vscode.Range
 ): vscode.Range {
   const lineText = document.lineAt(range.end.line).text;
 
   const charAfter = lineText.charAt(range.end.character);
-  if (charAfter === " ") {
+  if (charAfter === ' ') {
     return new vscode.Range(range.start, range.end.translate(0, 1));
   }
 
   const charBefore =
-    range.start.character > 0 ? lineText.charAt(range.start.character - 1) : "";
-  if (charBefore === " ") {
+    range.start.character > 0 ? lineText.charAt(range.start.character - 1) : '';
+  if (charBefore === ' ') {
     return new vscode.Range(range.start.translate(0, -1), range.end);
   }
 
@@ -116,16 +121,14 @@ function computeDeletionRange(
  * diagnostic (replacing `diagnostic.range` with `newClass`) and applies it
  * atomically.
  *
- * Kept as a standalone building block (not currently wired to any command
- * — see fixAllCommand.ts, which uses applyCombinedFixes instead) because
- * the roadmap's planned CodeActionProvider will want to apply a SINGLE
- * optimization fix via the lightbulb menu, independent of any conflict
- * handling.
+ * Kept as a standalone building block for the planned CodeActionProvider,
+ * which will want to apply a SINGLE optimization fix via the lightbulb
+ * menu, independent of any conflict handling.
  */
 export async function applyTailwindReplacements(
   document: vscode.TextDocument,
   parsedDiagnostics: readonly ParsedTailwindDiagnostic[],
-  logger: Logger,
+  logger: Logger
 ): Promise<ReplacementResult> {
   if (parsedDiagnostics.length === 0) {
     return { editApplied: false, appliedCount: 0, excludedCount: 0 };
@@ -135,7 +138,7 @@ export async function applyTailwindReplacements(
     parsedDiagnostics,
     (d) => d.diagnostic.range,
     (d) => `class "${d.oldClass}"`,
-    logger,
+    logger
   );
 
   if (accepted.length === 0) {
@@ -152,7 +155,7 @@ export async function applyTailwindReplacements(
 
   if (!editApplied) {
     logger.error(
-      `WorkspaceEdit failed to apply for ${accepted.length} intended replacements.`,
+      `WorkspaceEdit failed to apply for ${accepted.length} intended replacements.`
     );
     return { editApplied: false, appliedCount: 0, excludedCount };
   }
@@ -168,13 +171,12 @@ export async function applyTailwindReplacements(
  * conflict resolution) and applies it atomically.
  *
  * Kept as a standalone building block for the same reason as
- * applyTailwindReplacements above — not currently wired to any command,
- * but available for future reuse.
+ * applyTailwindReplacements above.
  */
 export async function removeClasses(
   document: vscode.TextDocument,
   ranges: readonly vscode.Range[],
-  logger: Logger,
+  logger: Logger
 ): Promise<RemovalResult> {
   if (ranges.length === 0) {
     return { editApplied: false, removedCount: 0, excludedCount: 0 };
@@ -183,8 +185,8 @@ export async function removeClasses(
   const { accepted, excludedCount } = excludeOverlapping(
     ranges,
     (r) => r,
-    () => "a conflict removal",
-    logger,
+    () => 'a conflict removal',
+    logger
   );
 
   if (accepted.length === 0) {
@@ -201,7 +203,7 @@ export async function removeClasses(
 
   if (!editApplied) {
     logger.error(
-      `WorkspaceEdit failed to apply for ${accepted.length} intended class removals.`,
+      `WorkspaceEdit failed to apply for ${accepted.length} intended class removals.`
     );
     return { editApplied: false, removedCount: 0, excludedCount };
   }
@@ -211,15 +213,44 @@ export async function removeClasses(
   return { editApplied: true, removedCount: accepted.length, excludedCount };
 }
 
+/**
+ * Builds a plain vscode.TextEdit[] for the given optimization diagnostics,
+ * WITHOUT constructing or applying a WorkspaceEdit.
+ *
+ * This exists specifically for the Auto Fix on Save listener, which must
+ * hand edits back via `TextDocumentWillSaveEvent.waitUntil(...)` so they
+ * get folded into the SAME disk write as the save itself, rather than
+ * calling `workspace.applyEdit()` after the fact (which would re-dirty the
+ * document and risk a redundant second save).
+ *
+ * Reuses the same overlap-safety guarantee as every other edit path in
+ * this file.
+ */
+export function buildOptimizationTextEdits(
+  parsedDiagnostics: readonly ParsedTailwindDiagnostic[],
+  logger: Logger
+): { edits: vscode.TextEdit[]; excludedCount: number } {
+  if (parsedDiagnostics.length === 0) {
+    return { edits: [], excludedCount: 0 };
+  }
+
+  const { accepted, excludedCount } = excludeOverlapping(
+    parsedDiagnostics,
+    (d) => d.diagnostic.range,
+    (d) => `class "${d.oldClass}"`,
+    logger
+  );
+
+  const edits = accepted.map((d) => vscode.TextEdit.replace(d.diagnostic.range, d.newClass));
+
+  return { edits, excludedCount };
+}
+
 /** Internal discriminated union used only to unify replace/delete items
  *  for the single combined overlap-check + WorkspaceEdit below. */
 type CombinedEditItem =
-  | {
-      readonly kind: "replace";
-      readonly range: vscode.Range;
-      readonly newText: string;
-    }
-  | { readonly kind: "delete"; readonly range: vscode.Range };
+  | { readonly kind: 'replace'; readonly range: vscode.Range; readonly newText: string }
+  | { readonly kind: 'delete'; readonly range: vscode.Range };
 
 /**
  * Builds and applies ONE WorkspaceEdit containing both optimization
@@ -242,12 +273,9 @@ export async function applyCombinedFixes(
   document: vscode.TextDocument,
   optimizationDiagnostics: readonly ParsedTailwindDiagnostic[],
   conflictRemovalRanges: readonly vscode.Range[],
-  logger: Logger,
+  logger: Logger
 ): Promise<CombinedFixResult> {
-  if (
-    optimizationDiagnostics.length === 0 &&
-    conflictRemovalRanges.length === 0
-  ) {
+  if (optimizationDiagnostics.length === 0 && conflictRemovalRanges.length === 0) {
     return {
       editApplied: false,
       optimizationAppliedCount: 0,
@@ -259,24 +287,19 @@ export async function applyCombinedFixes(
   const items: CombinedEditItem[] = [
     ...optimizationDiagnostics.map(
       (d): CombinedEditItem => ({
-        kind: "replace",
+        kind: 'replace',
         range: d.diagnostic.range,
         newText: d.newClass,
-      }),
+      })
     ),
-    ...conflictRemovalRanges.map(
-      (range): CombinedEditItem => ({ kind: "delete", range }),
-    ),
+    ...conflictRemovalRanges.map((range): CombinedEditItem => ({ kind: 'delete', range })),
   ];
 
   const { accepted, excludedCount } = excludeOverlapping(
     items,
     (item) => item.range,
-    (item) =>
-      item.kind === "replace"
-        ? `replace -> "${item.newText}"`
-        : "conflict removal",
-    logger,
+    (item) => (item.kind === 'replace' ? `replace -> "${item.newText}"` : 'conflict removal'),
+    logger
   );
 
   if (accepted.length === 0) {
@@ -293,14 +316,11 @@ export async function applyCombinedFixes(
   let conflictRemovedCount = 0;
 
   for (const item of accepted) {
-    if (item.kind === "replace") {
+    if (item.kind === 'replace') {
       workspaceEdit.replace(document.uri, item.range, item.newText);
       optimizationAppliedCount++;
     } else {
-      workspaceEdit.delete(
-        document.uri,
-        computeDeletionRange(document, item.range),
-      );
+      workspaceEdit.delete(document.uri, computeDeletionRange(document, item.range));
       conflictRemovedCount++;
     }
   }
@@ -310,7 +330,7 @@ export async function applyCombinedFixes(
   if (!editApplied) {
     logger.error(
       `Combined WorkspaceEdit failed (${optimizationAppliedCount} replacements, ` +
-        `${conflictRemovedCount} removals attempted).`,
+        `${conflictRemovedCount} removals attempted).`
     );
     return {
       editApplied: false,
@@ -322,7 +342,7 @@ export async function applyCombinedFixes(
 
   logger.info(
     `Combined edit applied: ${optimizationAppliedCount} optimizations, ` +
-      `${conflictRemovedCount} conflict removals.`,
+      `${conflictRemovedCount} conflict removals.`
   );
 
   return {

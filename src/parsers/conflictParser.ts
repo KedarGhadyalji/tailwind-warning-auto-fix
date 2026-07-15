@@ -1,4 +1,4 @@
-import { TAILWIND_CONFLICT_MESSAGE_PATTERN } from "../constants/regex";
+import { TAILWIND_CONFLICT_MESSAGE_PATTERN } from '../constants/regex';
 
 /**
  * Result of successfully parsing a class-conflict warning message.
@@ -21,7 +21,7 @@ export interface ParsedConflict {
  *          expected conflict-warning format.
  */
 export function parseTailwindConflictMessage(
-  message: string,
+  message: string
 ): ParsedConflict | null {
   const match = TAILWIND_CONFLICT_MESSAGE_PATTERN.exec(message.trim());
 

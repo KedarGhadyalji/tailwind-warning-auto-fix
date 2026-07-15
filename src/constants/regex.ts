@@ -30,12 +30,11 @@ export const TAILWIND_OPTIMIZATION_MESSAGE_PATTERN =
  *    one of them actually takes effect (per Tailwind's internal stylesheet
  *    order, not the order classes appear in markup), so blindly removing
  *    one risks silently changing the rendered page. Resolution always
- *    requires a user decision — see conflictsCommand.ts.
+ *    requires a user decision — see fixAllCommand.ts.
  *
  * Note the straight single quotes (') here, distinct from the backticks (`)
- * used in the optimization pattern — this is exactly how Tailwind CSS
- * IntelliSense formats each message type, and is itself a reliable signal
- * for telling the two categories apart before even inspecting content.
+ * used in the optimization pattern above — this is exactly how Tailwind CSS
+ * IntelliSense formats each message type.
  *
  * Capture group 1: the class this specific diagnostic is attached to
  * Capture group 2: the class it conflicts with
@@ -44,8 +43,15 @@ export const TAILWIND_CONFLICT_MESSAGE_PATTERN =
   /^'(.+?)' applies the same CSS properties as '(.+?)'\.?$/;
 
 /**
- * The `source` field VS Code attaches to diagnostics emitted by the
- * Tailwind CSS IntelliSense extension. Used to filter out unrelated
- * diagnostics (ESLint, TypeScript, etc.) before even attempting to parse.
+ * A case-insensitive substring used to identify diagnostics that likely
+ * came from Tailwind CSS IntelliSense, checked against `diagnostic.source`.
+ *
+ * Deliberately a loose substring match rather than an exact string, e.g.
+ * "Tailwind CSS IntelliSense" — real-world Problems-panel exports have
+ * shown values in different casing/formatting (e.g. an internal
+ * diagnostic-collection identifier like "tailwindcss-intellisense") across
+ * different contexts, so an exact match risked silently excluding every
+ * diagnostic if the exact string ever differed from what was hardcoded.
+ * See services/diagnosticsService.ts for how this is used.
  */
-export const TAILWIND_DIAGNOSTIC_SOURCE = "Tailwind CSS IntelliSense";
+export const TAILWIND_DIAGNOSTIC_SOURCE_HINT = 'tailwind';
