@@ -427,5 +427,3 @@ graph TD
 - **`waitUntil`** — the mechanism `onWillSaveTextDocument` listeners use to hand back edits that VS Code folds into the in-progress save itself, rather than applying them as a separate operation afterward.
 
 ---
-
-**Kedar, the `DEVELOPER.md` document is now completed.**
