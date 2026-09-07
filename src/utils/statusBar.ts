@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import { Commands } from '../constants/commandIds';
+import * as vscode from "vscode";
+import { Commands } from "../constants/commandIds";
 
 /**
  * Creates the single status bar item that gives users one-click access to
@@ -11,21 +11,21 @@ import { Commands } from '../constants/commandIds';
  * the disposal pattern used for the command registration and the logger's
  * output channel.
  *
- * Deliberately always visible (not conditioned on the active file's
- * language) since we don't hardcode which languages Tailwind CSS
- * IntelliSense supports — the command itself already handles "no warnings
- * found" gracefully if the active file has none.
+ * Deliberately NOT shown here — extension.ts decides visibility based on
+ * whether the current workspace looks like a Tailwind project (see
+ * services/projectDetectionService.ts), and re-evaluates it whenever
+ * workspace folders change. This function only configures the item's
+ * text/tooltip/command; the caller calls .show()/.hide() itself.
  */
 export function createStatusBarItem(): vscode.StatusBarItem {
   const item = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
-    100
+    100,
   );
 
-  item.text = '$(sparkle) Fix Tailwind Warnings';
-  item.tooltip = 'Fix All Tailwind Warnings (Ctrl+Alt+G / Cmd+Alt+G)';
+  item.text = "$(sparkle) Fix Tailwind Warnings";
+  item.tooltip = "Fix All Tailwind Warnings (Ctrl+Alt+G / Cmd+Alt+G)";
   item.command = Commands.fixAllWarnings;
-  item.show();
 
   return item;
 }

@@ -1,12 +1,13 @@
-import * as vscode from 'vscode';
-import { Commands } from './constants/commandIds';
-import { runFixAllCommand } from './commands/fixAllCommand';
-import { ConfigService } from './services/configService';
-import { Logger } from './utils/logger';
-import { createStatusBarItem } from './utils/statusBar';
-import { createAutoFixOnSaveListener } from './listeners/autoFixOnSaveListener';
+import * as vscode from "vscode";
+import { Commands } from "./constants/commandIds";
+import { runFixAllCommand } from "./commands/fixAllCommand";
+import { ConfigService } from "./services/configService";
+import { Logger } from "./utils/logger";
+import { createStatusBarItem } from "./utils/statusBar";
+import { createAutoFixOnSaveListener } from "./listeners/autoFixOnSaveListener";
+import { detectsTailwindProject } from "./services/projectDetectionService";
 
-const OUTPUT_CHANNEL_NAME = 'Tailwind Warning Auto-Fix';
+const OUTPUT_CHANNEL_NAME = "Tailwind Warning Auto-Fix";
 
 /**
  * Extension entry point. Called once by the VS Code extension host — see
@@ -35,15 +36,41 @@ export function activate(context: vscode.ExtensionContext): void {
   const logger = new Logger(OUTPUT_CHANNEL_NAME);
   const configService = new ConfigService();
 
-  logger.info('Tailwind Warning Auto-Fix activated.');
+  logger.info("Tailwind Warning Auto-Fix activated.");
 
   const commandDisposable = vscode.commands.registerCommand(
     Commands.fixAllWarnings,
-    () => runFixAllCommand(logger, configService)
+    () => runFixAllCommand(logger, configService),
   );
 
   const statusBarItem = createStatusBarItem();
-  const autoFixOnSaveDisposable = createAutoFixOnSaveListener(configService, logger);
+  const autoFixOnSaveDisposable = createAutoFixOnSaveListener(
+    configService,
+    logger,
+  );
+
+  /**
+   * Re-runs Tailwind-project detection and shows/hides the status bar
+   * button accordingly. Called once at startup and again whenever the
+   * workspace's folders change, so opening a different project (without a
+   * full window reload) updates visibility correctly rather than leaving
+   * it stuck at whatever the first detection found.
+   */
+  const refreshStatusBarVisibility = async (): Promise<void> => {
+    const shouldShow = await detectsTailwindProject(logger);
+    if (shouldShow) {
+      statusBarItem.show();
+    } else {
+      statusBarItem.hide();
+    }
+  };
+
+  void refreshStatusBarVisibility();
+
+  const workspaceFoldersDisposable =
+    vscode.workspace.onDidChangeWorkspaceFolders(
+      () => void refreshStatusBarVisibility(),
+    );
 
   // Logger wraps a vscode.OutputChannel, which is itself a Disposable —
   // exposing it here lets us register cleanup the same way as every other
@@ -52,7 +79,8 @@ export function activate(context: vscode.ExtensionContext): void {
     commandDisposable,
     statusBarItem,
     autoFixOnSaveDisposable,
-    logger
+    workspaceFoldersDisposable,
+    logger,
   );
 }
 
