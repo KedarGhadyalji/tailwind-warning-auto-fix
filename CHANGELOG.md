@@ -7,11 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned
+### Planned (in priority order)
 
-- Workspace-wide Fix All command
+- Unit test suite
 - CodeActionProvider / lightbulb integration
-- Unit and integration test suite
+- CI via GitHub Actions
+- Workspace-wide "Fix All" command
+- Status bar item that only appears when warnings exist in the active file (separate from 0.5.0's project-level detection below)
+
+## [0.5.1]
+
+### Fixed
+
+- `projectDetectionService.ts` no longer uses Node's `Buffer` global (which caused a `Cannot find name 'Buffer'` compile error on setups where `@types/node`'s ambient types weren't resolving, despite it being a listed devDependency). Reads `package.json` files via `vscode.workspace.openTextDocument(...).getText()` instead — pure VS Code API, no dependency on Node's global type declarations at all.
+
+## [0.5.0]
+
+### Added
+
+- The status bar button (**✨ Fix Tailwind Warnings**) now only appears when the current workspace actually looks like a Tailwind project — detected via a `tailwind.config.{js,cjs,mjs,ts}` file, or failing that, a `tailwindcss` dependency in any `package.json` (covers Tailwind v4's CSS-first setup with no config file). Re-checked automatically whenever workspace folders change, so switching projects without reloading the window updates visibility correctly. A single loose file with no workspace folder open always shows the button, since there's no "project" to detect either way.
 
 ## [0.4.2]
 

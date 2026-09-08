@@ -2,7 +2,7 @@
 
 Automatically fix every Tailwind CSS optimization warning in the active file with a single command — no more clicking Quick Fix one class at a time.
 
-![Version](https://img.shields.io/badge/version-0.4.2-blue)
+![Version](https://img.shields.io/badge/version-0.5.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
@@ -42,19 +42,20 @@ It does **not** reimplement Tailwind's optimization logic — it's a thin, safe 
 - ✅ Uses each diagnostic's exact source range — never a document-wide text search, so it's safe even when the same class string appears multiple times in a file
 - ✅ Works in any file type supported by Tailwind CSS IntelliSense (JS, TS, JSX, TSX, HTML, Vue, Astro, Svelte, PHP, Blade, MDX, and more) — no hardcoded language list
 - ✅ Status bar button and keyboard shortcut available immediately on VS Code startup — no need to run the command once first
+- ✅ The status bar button only appears when the workspace actually looks like a Tailwind project — no clutter in unrelated projects
 - ✅ Gracefully skips and reports any warning it can't safely parse, instead of failing the whole batch
 
 ## Optimization vs. Conflicts — why they're handled differently
 
 Tailwind CSS IntelliSense produces two distinct kinds of warnings, and even though **one command** (and, optionally, Auto Fix on Save) handles both, they're resolved very differently internally:
 
-| | Optimization warnings | Conflict warnings |
-|---|---|---|
-| Example | `` The class `max-w-[1600px]` can be written as `max-w-400` `` | `'text-left' applies the same CSS properties as 'text-center'.` |
-| Meaning | Two forms that render **identically** | Two **different**, mutually exclusive values for the same property — only one actually applies |
-| Applied how | Automatically | **One decision per conflict**, via Quick Pick — never automatic |
-| On save (if enabled) | Fixed silently | **Never touched** — always requires the manual command |
-| Why | Safe — no visual change is possible | Removing the wrong side would silently change how the page renders, since Tailwind's effective precedence isn't based on the order classes appear in your markup |
+|                      | Optimization warnings                                          | Conflict warnings                                                                                                                                                |
+| -------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Example              | `` The class `max-w-[1600px]` can be written as `max-w-400` `` | `'text-left' applies the same CSS properties as 'text-center'.`                                                                                                  |
+| Meaning              | Two forms that render **identically**                          | Two **different**, mutually exclusive values for the same property — only one actually applies                                                                   |
+| Applied how          | Automatically                                                  | **One decision per conflict**, via Quick Pick — never automatic                                                                                                  |
+| On save (if enabled) | Fixed silently                                                 | **Never touched** — always requires the manual command                                                                                                           |
+| Why                  | Safe — no visual change is possible                            | Removing the wrong side would silently change how the page renders, since Tailwind's effective precedence isn't based on the order classes appear in your markup |
 
 ---
 
@@ -76,7 +77,7 @@ Tailwind CSS IntelliSense produces two distinct kinds of warnings, and even thou
 ### From a `.vsix` file
 
 ```bash
-code --install-extension tailwind-warning-auto-fix-0.4.2.vsix
+code --install-extension tailwind-warning-auto-fix-0.5.0.vsix
 ```
 
 ---
@@ -99,33 +100,33 @@ All three trigger the identical flow:
 
 ### What you'll see
 
-| Situation | Message |
-|---|---|
-| No file open | `Open a file first.` |
-| No warnings in the file | `No Tailwind warnings found.` |
-| Optimization warnings found | `Found 18 Tailwind optimization warnings. Apply all fixes?` |
-| A class conflict found | Quick Pick: `Keep 'text-left', remove 'text-center'` / `Keep 'text-center', remove 'text-left'` / `Skip` |
-| Everything applied | `18 optimizations fixed, 2 conflicts resolved.` |
-| Some warnings unparsable | `18 optimizations fixed, 2 conflicts resolved. 3 warnings skipped.` |
+| Situation                   | Message                                                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------------------------------- |
+| No file open                | `Open a file first.`                                                                                     |
+| No warnings in the file     | `No Tailwind warnings found.`                                                                            |
+| Optimization warnings found | `Found 18 Tailwind optimization warnings. Apply all fixes?`                                              |
+| A class conflict found      | Quick Pick: `Keep 'text-left', remove 'text-center'` / `Keep 'text-center', remove 'text-left'` / `Skip` |
+| Everything applied          | `18 optimizations fixed, 2 conflicts resolved.`                                                          |
+| Some warnings unparsable    | `18 optimizations fixed, 2 conflicts resolved. 3 warnings skipped.`                                      |
 
 ---
 
 ## Commands
 
-| Command | Shortcut | Description |
-|---|---|---|
+| Command                      | Shortcut                   | Description                                                                                                                                                                                                                                                                                                       |
+| ---------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Tailwind: Fix All Warnings` | `Ctrl+Alt+G` / `Cmd+Alt+G` | Scans the active file for both optimization warnings and class conflicts. Applies optimizations automatically (after one confirmation) and walks through conflicts one at a time via Quick Pick — all combined into a single, atomic edit. Also available via the **✨ Fix Tailwind Warnings** status bar button. |
 
 ---
 
 ## Settings
 
-| Setting | Type | Default | Description |
-|---|---|---|---|
-| `tailwindAutoOptimizer.confirmBeforeApply` | boolean | `true` | Show a confirmation dialog before applying optimization fixes when running the manual command. Has no effect on Auto Fix on Save, which never shows a dialog. |
-| `tailwindAutoOptimizer.showSummary` | boolean | `true` | Show a summary notification after `Tailwind: Fix All Warnings` finishes. Has no effect on Auto Fix on Save, which is always silent (see below). |
-| `tailwindAutoOptimizer.autoFixOnSave` | boolean | `false` | Automatically fix optimization warnings every time you save a file (see "Auto Fix on Save" below). |
-| `tailwindAutoOptimizer.conflictResolutionStrategy` | `"ask"` \| `"keepFirst"` \| `"keepLast"` \| `"skip"` | `"ask"` | How to resolve class conflicts (see "Conflict Resolution Strategy" below). |
+| Setting                                            | Type                                                 | Default | Description                                                                                                                                                   |
+| -------------------------------------------------- | ---------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tailwindAutoOptimizer.confirmBeforeApply`         | boolean                                              | `true`  | Show a confirmation dialog before applying optimization fixes when running the manual command. Has no effect on Auto Fix on Save, which never shows a dialog. |
+| `tailwindAutoOptimizer.showSummary`                | boolean                                              | `true`  | Show a summary notification after `Tailwind: Fix All Warnings` finishes. Has no effect on Auto Fix on Save, which is always silent (see below).               |
+| `tailwindAutoOptimizer.autoFixOnSave`              | boolean                                              | `false` | Automatically fix optimization warnings every time you save a file (see "Auto Fix on Save" below).                                                            |
+| `tailwindAutoOptimizer.conflictResolutionStrategy` | `"ask"` \| `"keepFirst"` \| `"keepLast"` \| `"skip"` | `"ask"` | How to resolve class conflicts (see "Conflict Resolution Strategy" below).                                                                                    |
 
 ---
 
@@ -139,7 +140,7 @@ If you want zero prompts at all, two automatic modes are available:
 - `"keepLast"` — same, but keeps whichever appears later.
 - `"skip"` — never touches conflicts at all; they stay visible in the Problems panel only.
 
-**Read this before enabling `keepFirst`/`keepLast`:** these are *not* a safe shortcut. Tailwind's actual rendered precedence between two conflicting classes is decided by Tailwind's internal stylesheet generation order — it has nothing to do with which class appears first in your `class="..."` attribute. Choosing an automatic mode can silently keep the class that has no visual effect and delete the one that was actually rendering, changing your page's appearance without any warning. Enable these only if you've reviewed your specific conflicts once already and are confident about the pattern, or you're comfortable checking the result visually afterward.
+**Read this before enabling `keepFirst`/`keepLast`:** these are _not_ a safe shortcut. Tailwind's actual rendered precedence between two conflicting classes is decided by Tailwind's internal stylesheet generation order — it has nothing to do with which class appears first in your `class="..."` attribute. Choosing an automatic mode can silently keep the class that has no visual effect and delete the one that was actually rendering, changing your page's appearance without any warning. Enable these only if you've reviewed your specific conflicts once already and are confident about the pattern, or you're comfortable checking the result visually afterward.
 
 ---
 
@@ -154,11 +155,13 @@ Enable `tailwindAutoOptimizer.autoFixOnSave` in Settings to have optimization wa
 ```
 
 **What happens on save:**
+
 - Every optimization warning in the file is fixed, folded directly into the same save operation (via VS Code's `onWillSaveTextDocument`/`waitUntil` API) — not a separate edit afterward, so there's no risk of re-dirtying the file or triggering a redundant second save.
 - This is completely **silent** — no popup, no status bar message. Every action is still recorded in the **Output panel → "Tailwind Warning Auto-Fix"** channel if you want to check what happened.
 - A save with nothing to fix does nothing at all.
 
 **What does NOT happen on save — by design:**
+
 - **Class conflicts are never auto-resolved on save**, regardless of this setting. Deciding which of two conflicting classes should stay always requires a judgment call (see "Optimization vs. Conflicts" above) — an interactive prompt on every save (especially with VS Code's own Auto Save enabled, which can fire every second or so while typing) would be disruptive, and guessing automatically risks a silent visual regression. Unresolved conflicts remain visible in the Problems panel; run `Tailwind: Fix All Warnings` whenever you're ready to address them.
 - No modal dialog ever appears during a save, regardless of `confirmBeforeApply` — that setting only applies to the manual command.
 

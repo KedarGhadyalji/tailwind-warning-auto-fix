@@ -2,7 +2,7 @@
   "name": "tailwind-warning-auto-fix",
   "displayName": "Tailwind Warning Auto-Fix",
   "description": "Automatically fixes every Tailwind CSS IntelliSense optimization warning in the active file with one command — no more clicking Quick Fix one class at a time.",
-  "version": "0.4.2",
+  "version": "0.5.1",
   "publisher": "KedarGhadyalji",
   "engines": {
     "vscode": "^1.90.0"
@@ -76,7 +76,12 @@
         },
         "tailwindAutoOptimizer.conflictResolutionStrategy": {
           "type": "string",
-          "enum": ["ask", "keepFirst", "keepLast", "skip"],
+          "enum": [
+            "ask",
+            "keepFirst",
+            "keepLast",
+            "skip"
+          ],
           "enumDescriptions": [
             "Ask which class to keep for each unique conflicting pair (default, safest).",
             "Automatically keep whichever class appears FIRST in the markup for every conflict, no prompt. NOT guaranteed to match what actually renders — Tailwind's real precedence depends on its internal stylesheet order, not markup order. Can silently change page appearance.",
