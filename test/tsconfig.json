@@ -1,0 +1,29 @@
+{
+  // Deliberately NOT using "extends" to reach ../tsconfig.json — VS Code's
+  // TypeScript language service on Windows was mis-resolving that relative
+  // path one directory too high (see CHANGELOG). This config duplicates
+  // the relevant options from the root tsconfig.json directly instead.
+  // If the root config's compilerOptions ever change, mirror the change
+  // here too.
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "rootDir": "..",
+    "outDir": "../out-test",
+    "sourceMap": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node"]
+  },
+  "include": ["**/*.ts", "../src/**/*.ts"],
+  "exclude": ["../node_modules", "../.vscode-test", "../out", "../out-test"]
+}
