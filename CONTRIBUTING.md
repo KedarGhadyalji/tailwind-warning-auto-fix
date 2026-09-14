@@ -19,8 +19,9 @@ Press `F5` in VS Code to launch the Extension Development Host and try your chan
    ```bash
    npm run compile
    npm run lint
+   npm test
    ```
-   Both must pass cleanly with zero errors.
+   All three must pass cleanly with zero errors.
 3. **Match the existing architecture.** Specifically:
    - Business logic belongs in `services/`, never in `commands/`.
    - Anything touching diagnostic message parsing belongs in `parsers/` and must remain free of `vscode` imports (pure functions only).

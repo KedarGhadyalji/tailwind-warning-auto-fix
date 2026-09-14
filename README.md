@@ -2,7 +2,7 @@
 
 Automatically fix every Tailwind CSS optimization warning in the active file with a single command — no more clicking Quick Fix one class at a time.
 
-![Version](https://img.shields.io/badge/version-0.5.0-blue)
+![Version](https://img.shields.io/badge/version-0.6.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
@@ -77,7 +77,7 @@ Tailwind CSS IntelliSense produces two distinct kinds of warnings, and even thou
 ### From a `.vsix` file
 
 ```bash
-code --install-extension tailwind-warning-auto-fix-0.5.0.vsix
+code --install-extension tailwind-warning-auto-fix-0.6.2.vsix
 ```
 
 ---
@@ -236,6 +236,14 @@ npm run watch         # incremental rebuild on file changes
 npm run lint
 ```
 
+### Test
+
+```bash
+npm test
+```
+
+Runs the unit test suite via Node's built-in test runner (`node:test`) — no extra dependencies. Currently covers the pure parser functions (`diagnosticParser.ts`, `conflictParser.ts`) and the message-formatting logic in `constants/messages.ts`. Test files live under `test/`, mirroring the `src/` structure, and are compiled separately (`test/tsconfig.json` → `out-test/`) so they never affect the production build in `out/`. `test/tsconfig.json` (rather than a root-level file) is what it's named specifically so VS Code's built-in TypeScript language service auto-discovers it for files under `test/` — without this, the editor shows false-positive "Cannot find name" errors for `node:test`/`node:assert` even though the actual build is fine.
+
 ### Package
 
 ```bash
@@ -269,21 +277,24 @@ Contributions are welcome. Please:
 
 1. Open an issue describing the bug or feature before submitting a large PR.
 2. Keep changes scoped — this project favors small, focused modules (see architecture below).
-3. Run `npm run lint` and `npm run compile` before submitting.
+3. Run `npm run lint`, `npm run compile`, and `npm test` before submitting.
 4. Match the existing code style (strict TypeScript, no `any`, no unused code).
+5. If you touch `diagnosticParser.ts`, `conflictParser.ts`, or `constants/messages.ts`, add or update the corresponding tests under `test/` — these are the pieces most likely to silently break.
 
 ### Architecture Overview
 
 ```
 src/
 ├── commands/       # Orchestrates the user-triggered "Fix All Warnings" flow
-├── services/       # Diagnostics reading, replacement building, config access
+├── services/       # Diagnostics reading, replacement building, config access, project detection
 ├── parsers/        # Pure, dependency-free message parsing (optimization + conflict)
 ├── listeners/       # Background event listeners (Auto Fix on Save)
 ├── utils/          # Logging, notification, and status bar helpers
 ├── types/          # Shared interfaces
 ├── constants/      # Messages, regex patterns, command IDs
 └── extension.ts    # Composition root (activate/deactivate)
+
+test/               # Unit tests (node:test), mirrors src/ — see "Test" above
 ```
 
 ---

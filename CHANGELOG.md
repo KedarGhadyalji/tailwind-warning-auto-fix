@@ -9,11 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned (in priority order)
 
-- Unit test suite
 - CodeActionProvider / lightbulb integration
 - CI via GitHub Actions
 - Workspace-wide "Fix All" command
-- Status bar item that only appears when warnings exist in the active file (separate from 0.5.0's project-level detection below)
+- Status bar item that only appears when warnings exist in the active file
+
+## [0.6.2]
+
+### Fixed
+
+- `test/tsconfig.json` no longer uses `"extends": "../tsconfig.json"` — on Windows, VS Code's TypeScript language service was mis-resolving that relative path one directory level too high (reported as `Cannot read file 'c:/MyProjects/tsconfig.json'` when the actual project lived at `c:/MyProjects/tailwind-warning-auto-fix/`), causing an editor-only error on the root `tsconfig.json` itself. `test/tsconfig.json` is now fully self-contained, duplicating the handful of relevant compiler options directly instead of extending the root config.
+
+## [0.6.1]
+
+### Fixed
+
+- Moved the test TypeScript config from a root-level `tsconfig.test.json` to `test/tsconfig.json`. The actual `npm test` build was always correct, but VS Code's built-in TypeScript language service only auto-discovers config files named exactly `tsconfig.json` by walking up from the open file — it never found the non-standard root-level name, so it fell back to checking `test/*.ts` files with no project context at all, showing false-positive "Cannot find name 'node:test'" editor errors despite the real build succeeding.
+
+## [0.6.0]
+
+### Added
+
+- Unit test suite (`npm test`) using Node's built-in test runner (`node:test`) — zero new dependencies, consistent with the project's minimal-dependency philosophy. Covers `diagnosticParser.ts` and `conflictParser.ts` (the pure, dependency-free message parsers — the single most likely place to silently break if Tailwind CSS IntelliSense ever changes its wording) and the pluralization/formatting logic in `constants/messages.ts`. 30 tests total.
+- New `tsconfig.test.json`, compiling `src/` and `test/` together into a separate `out-test/` directory so the production build (`npm run compile`, `out/`) stays completely unaffected.
+
+### Fixed
+
+- The production `tsconfig.json` had no explicit `include`, so adding `test/*.ts` files broke `npm run compile` (files outside `rootDir`). Added an explicit `"include": ["src/**/*.ts"]` so the production build only ever sees `src/`, regardless of what else exists in the project root.
 
 ## [0.5.1]
 
