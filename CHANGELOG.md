@@ -9,10 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned (in priority order)
 
-- CodeActionProvider / lightbulb integration
 - CI via GitHub Actions
 - Workspace-wide "Fix All" command
 - Status bar item that only appears when warnings exist in the active file
+
+## [0.7.0]
+
+### Added
+
+- **CodeActionProvider (lightbulb / Quick Fix integration)**: individual Tailwind warnings can now be fixed inline via VS Code's native Quick Fix menu (the lightbulb icon, or `Ctrl+.` / `Cmd+.`), without running the batch command. Optimization warnings offer a "Replace with `X`" action (marked as the preferred fix, since it's unambiguously safe); conflict warnings offer a "Remove `X` (conflicts with `Y`)" action that only removes the specific class you clicked on, never guessing the other side. A "Fix all Tailwind warnings in this file" action is also offered, bridging back to the full `Tailwind: Fix All Warnings` command.
+- New `src/providers/` folder, alongside the existing `commands/`, `services/`, etc.
+
+### Changed
+
+- `computeDeletionRange` (in `replacementService.ts`) and `isLikelyTailwindDiagnostic` (in `diagnosticsService.ts`) are now exported, so the new CodeActionProvider reuses the exact same whitespace-safe deletion and source-filtering logic as the batch command — no duplicated logic between the two entry points.
 
 ## [0.6.2]
 

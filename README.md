@@ -2,7 +2,7 @@
 
 Automatically fix every Tailwind CSS optimization warning in the active file with a single command — no more clicking Quick Fix one class at a time.
 
-![Version](https://img.shields.io/badge/version-0.6.2-blue)
+![Version](https://img.shields.io/badge/version-0.7.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
@@ -43,6 +43,7 @@ It does **not** reimplement Tailwind's optimization logic — it's a thin, safe 
 - ✅ Works in any file type supported by Tailwind CSS IntelliSense (JS, TS, JSX, TSX, HTML, Vue, Astro, Svelte, PHP, Blade, MDX, and more) — no hardcoded language list
 - ✅ Status bar button and keyboard shortcut available immediately on VS Code startup — no need to run the command once first
 - ✅ The status bar button only appears when the workspace actually looks like a Tailwind project — no clutter in unrelated projects
+- ✅ **Quick Fix / lightbulb integration** — fix a single warning inline via VS Code's native Quick Fix menu (`Ctrl+.` / `Cmd+.`), no need to run the batch command for a one-off fix
 - ✅ Gracefully skips and reports any warning it can't safely parse, instead of failing the whole batch
 
 ## Optimization vs. Conflicts — why they're handled differently
@@ -77,7 +78,7 @@ Tailwind CSS IntelliSense produces two distinct kinds of warnings, and even thou
 ### From a `.vsix` file
 
 ```bash
-code --install-extension tailwind-warning-auto-fix-0.6.2.vsix
+code --install-extension tailwind-warning-auto-fix-0.7.0.vsix
 ```
 
 ---
@@ -116,6 +117,16 @@ All three trigger the identical flow:
 | Command                      | Shortcut                   | Description                                                                                                                                                                                                                                                                                                       |
 | ---------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Tailwind: Fix All Warnings` | `Ctrl+Alt+G` / `Cmd+Alt+G` | Scans the active file for both optimization warnings and class conflicts. Applies optimizations automatically (after one confirmation) and walks through conflicts one at a time via Quick Pick — all combined into a single, atomic edit. Also available via the **✨ Fix Tailwind Warnings** status bar button. |
+
+---
+
+## Quick Fix (single-warning fixes)
+
+For a one-off fix, you don't need to run the batch command at all: click into the squiggly-underlined class, or click the lightbulb icon that appears next to it, and choose the suggested fix — or press `Ctrl+.` (`Cmd+.` on Mac) to bring up the menu directly.
+
+- **Optimization warnings** offer "Replace with `X`" — pre-selected as the preferred fix.
+- **Conflict warnings** offer "Remove `X` (conflicts with `Y`)" — removes only the specific class you clicked on. If you want to remove the _other_ side instead, click on that class and invoke Quick Fix there.
+- Either menu also includes "Fix all Tailwind warnings in this file", which runs the full batch command without leaving the lightbulb menu.
 
 ---
 
@@ -286,6 +297,7 @@ Contributions are welcome. Please:
 ```
 src/
 ├── commands/       # Orchestrates the user-triggered "Fix All Warnings" flow
+├── providers/      # VS Code CodeActionProvider (lightbulb / Quick Fix menu)
 ├── services/       # Diagnostics reading, replacement building, config access, project detection
 ├── parsers/        # Pure, dependency-free message parsing (optimization + conflict)
 ├── listeners/       # Background event listeners (Auto Fix on Save)
