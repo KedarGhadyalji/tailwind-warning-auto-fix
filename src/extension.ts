@@ -6,6 +6,7 @@ import { Logger } from "./utils/logger";
 import { createStatusBarItem } from "./utils/statusBar";
 import { createAutoFixOnSaveListener } from "./listeners/autoFixOnSaveListener";
 import { detectsTailwindProject } from "./services/projectDetectionService";
+import { TailwindCodeActionProvider } from "./providers/codeActionProvider";
 
 const OUTPUT_CHANNEL_NAME = "Tailwind Warning Auto-Fix";
 
@@ -49,6 +50,16 @@ export function activate(context: vscode.ExtensionContext): void {
     logger,
   );
 
+  const codeActionProviderDisposable =
+    vscode.languages.registerCodeActionsProvider(
+      "*",
+      new TailwindCodeActionProvider(logger),
+      {
+        providedCodeActionKinds:
+          TailwindCodeActionProvider.providedCodeActionKinds,
+      },
+    );
+
   /**
    * Re-runs Tailwind-project detection and shows/hides the status bar
    * button accordingly. Called once at startup and again whenever the
@@ -79,6 +90,7 @@ export function activate(context: vscode.ExtensionContext): void {
     commandDisposable,
     statusBarItem,
     autoFixOnSaveDisposable,
+    codeActionProviderDisposable,
     workspaceFoldersDisposable,
     logger,
   );

@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import { ParsedTailwindDiagnostic } from '../types/diagnosticTypes';
-import { Logger } from '../utils/logger';
+import * as vscode from "vscode";
+import { ParsedTailwindDiagnostic } from "../types/diagnosticTypes";
+import { Logger } from "../utils/logger";
 
 /**
  * Result of attempting to apply a batch of Tailwind class replacements.
@@ -58,10 +58,10 @@ function excludeOverlapping<T>(
   items: readonly T[],
   getRange: (item: T) => vscode.Range,
   describe: (item: T) => string,
-  logger: Logger
+  logger: Logger,
 ): { accepted: T[]; excludedCount: number } {
   const sorted = [...items].sort((a, b) =>
-    getRange(a).start.isBefore(getRange(b).start) ? -1 : 1
+    getRange(a).start.isBefore(getRange(b).start) ? -1 : 1,
   );
 
   const accepted: T[] = [];
@@ -69,7 +69,7 @@ function excludeOverlapping<T>(
 
   for (const candidate of sorted) {
     const overlapsExisting = accepted.some((existing) =>
-      rangesOverlap(getRange(existing), getRange(candidate))
+      rangesOverlap(getRange(existing), getRange(candidate)),
     );
 
     if (overlapsExisting) {
@@ -95,21 +95,26 @@ function excludeOverlapping<T>(
  * with every other range-based operation in this extension. Class names
  * are never expected to span multiple lines, so same-line-only is a safe
  * assumption here.
+ *
+ * Exported (not just used internally) so providers/codeActionProvider.ts
+ * can reuse the exact same whitespace-safe deletion logic for single-class
+ * Quick Fix removals — one source of truth for this rather than a second,
+ * potentially-drifting copy.
  */
-function computeDeletionRange(
+export function computeDeletionRange(
   document: vscode.TextDocument,
-  range: vscode.Range
+  range: vscode.Range,
 ): vscode.Range {
   const lineText = document.lineAt(range.end.line).text;
 
   const charAfter = lineText.charAt(range.end.character);
-  if (charAfter === ' ') {
+  if (charAfter === " ") {
     return new vscode.Range(range.start, range.end.translate(0, 1));
   }
 
   const charBefore =
-    range.start.character > 0 ? lineText.charAt(range.start.character - 1) : '';
-  if (charBefore === ' ') {
+    range.start.character > 0 ? lineText.charAt(range.start.character - 1) : "";
+  if (charBefore === " ") {
     return new vscode.Range(range.start.translate(0, -1), range.end);
   }
 
@@ -128,7 +133,7 @@ function computeDeletionRange(
 export async function applyTailwindReplacements(
   document: vscode.TextDocument,
   parsedDiagnostics: readonly ParsedTailwindDiagnostic[],
-  logger: Logger
+  logger: Logger,
 ): Promise<ReplacementResult> {
   if (parsedDiagnostics.length === 0) {
     return { editApplied: false, appliedCount: 0, excludedCount: 0 };
@@ -138,7 +143,7 @@ export async function applyTailwindReplacements(
     parsedDiagnostics,
     (d) => d.diagnostic.range,
     (d) => `class "${d.oldClass}"`,
-    logger
+    logger,
   );
 
   if (accepted.length === 0) {
@@ -155,7 +160,7 @@ export async function applyTailwindReplacements(
 
   if (!editApplied) {
     logger.error(
-      `WorkspaceEdit failed to apply for ${accepted.length} intended replacements.`
+      `WorkspaceEdit failed to apply for ${accepted.length} intended replacements.`,
     );
     return { editApplied: false, appliedCount: 0, excludedCount };
   }
@@ -176,7 +181,7 @@ export async function applyTailwindReplacements(
 export async function removeClasses(
   document: vscode.TextDocument,
   ranges: readonly vscode.Range[],
-  logger: Logger
+  logger: Logger,
 ): Promise<RemovalResult> {
   if (ranges.length === 0) {
     return { editApplied: false, removedCount: 0, excludedCount: 0 };
@@ -185,8 +190,8 @@ export async function removeClasses(
   const { accepted, excludedCount } = excludeOverlapping(
     ranges,
     (r) => r,
-    () => 'a conflict removal',
-    logger
+    () => "a conflict removal",
+    logger,
   );
 
   if (accepted.length === 0) {
@@ -203,7 +208,7 @@ export async function removeClasses(
 
   if (!editApplied) {
     logger.error(
-      `WorkspaceEdit failed to apply for ${accepted.length} intended class removals.`
+      `WorkspaceEdit failed to apply for ${accepted.length} intended class removals.`,
     );
     return { editApplied: false, removedCount: 0, excludedCount };
   }
@@ -228,7 +233,7 @@ export async function removeClasses(
  */
 export function buildOptimizationTextEdits(
   parsedDiagnostics: readonly ParsedTailwindDiagnostic[],
-  logger: Logger
+  logger: Logger,
 ): { edits: vscode.TextEdit[]; excludedCount: number } {
   if (parsedDiagnostics.length === 0) {
     return { edits: [], excludedCount: 0 };
@@ -238,10 +243,12 @@ export function buildOptimizationTextEdits(
     parsedDiagnostics,
     (d) => d.diagnostic.range,
     (d) => `class "${d.oldClass}"`,
-    logger
+    logger,
   );
 
-  const edits = accepted.map((d) => vscode.TextEdit.replace(d.diagnostic.range, d.newClass));
+  const edits = accepted.map((d) =>
+    vscode.TextEdit.replace(d.diagnostic.range, d.newClass),
+  );
 
   return { edits, excludedCount };
 }
@@ -249,8 +256,12 @@ export function buildOptimizationTextEdits(
 /** Internal discriminated union used only to unify replace/delete items
  *  for the single combined overlap-check + WorkspaceEdit below. */
 type CombinedEditItem =
-  | { readonly kind: 'replace'; readonly range: vscode.Range; readonly newText: string }
-  | { readonly kind: 'delete'; readonly range: vscode.Range };
+  | {
+      readonly kind: "replace";
+      readonly range: vscode.Range;
+      readonly newText: string;
+    }
+  | { readonly kind: "delete"; readonly range: vscode.Range };
 
 /**
  * Builds and applies ONE WorkspaceEdit containing both optimization
@@ -273,9 +284,12 @@ export async function applyCombinedFixes(
   document: vscode.TextDocument,
   optimizationDiagnostics: readonly ParsedTailwindDiagnostic[],
   conflictRemovalRanges: readonly vscode.Range[],
-  logger: Logger
+  logger: Logger,
 ): Promise<CombinedFixResult> {
-  if (optimizationDiagnostics.length === 0 && conflictRemovalRanges.length === 0) {
+  if (
+    optimizationDiagnostics.length === 0 &&
+    conflictRemovalRanges.length === 0
+  ) {
     return {
       editApplied: false,
       optimizationAppliedCount: 0,
@@ -287,19 +301,24 @@ export async function applyCombinedFixes(
   const items: CombinedEditItem[] = [
     ...optimizationDiagnostics.map(
       (d): CombinedEditItem => ({
-        kind: 'replace',
+        kind: "replace",
         range: d.diagnostic.range,
         newText: d.newClass,
-      })
+      }),
     ),
-    ...conflictRemovalRanges.map((range): CombinedEditItem => ({ kind: 'delete', range })),
+    ...conflictRemovalRanges.map(
+      (range): CombinedEditItem => ({ kind: "delete", range }),
+    ),
   ];
 
   const { accepted, excludedCount } = excludeOverlapping(
     items,
     (item) => item.range,
-    (item) => (item.kind === 'replace' ? `replace -> "${item.newText}"` : 'conflict removal'),
-    logger
+    (item) =>
+      item.kind === "replace"
+        ? `replace -> "${item.newText}"`
+        : "conflict removal",
+    logger,
   );
 
   if (accepted.length === 0) {
@@ -316,11 +335,14 @@ export async function applyCombinedFixes(
   let conflictRemovedCount = 0;
 
   for (const item of accepted) {
-    if (item.kind === 'replace') {
+    if (item.kind === "replace") {
       workspaceEdit.replace(document.uri, item.range, item.newText);
       optimizationAppliedCount++;
     } else {
-      workspaceEdit.delete(document.uri, computeDeletionRange(document, item.range));
+      workspaceEdit.delete(
+        document.uri,
+        computeDeletionRange(document, item.range),
+      );
       conflictRemovedCount++;
     }
   }
@@ -330,7 +352,7 @@ export async function applyCombinedFixes(
   if (!editApplied) {
     logger.error(
       `Combined WorkspaceEdit failed (${optimizationAppliedCount} replacements, ` +
-        `${conflictRemovedCount} removals attempted).`
+        `${conflictRemovedCount} removals attempted).`,
     );
     return {
       editApplied: false,
@@ -342,7 +364,7 @@ export async function applyCombinedFixes(
 
   logger.info(
     `Combined edit applied: ${optimizationAppliedCount} optimizations, ` +
-      `${conflictRemovedCount} conflict removals.`
+      `${conflictRemovedCount} conflict removals.`,
   );
 
   return {

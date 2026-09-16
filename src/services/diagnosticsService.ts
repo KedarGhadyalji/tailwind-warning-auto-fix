@@ -1,7 +1,7 @@
-import * as vscode from 'vscode';
-import { TAILWIND_DIAGNOSTIC_SOURCE_HINT } from '../constants/regex';
-import { parseTailwindOptimizationMessage } from '../parsers/diagnosticParser';
-import { parseTailwindConflictMessage } from '../parsers/conflictParser';
+import * as vscode from "vscode";
+import { TAILWIND_DIAGNOSTIC_SOURCE_HINT } from "../constants/regex";
+import { parseTailwindOptimizationMessage } from "../parsers/diagnosticParser";
+import { parseTailwindConflictMessage } from "../parsers/conflictParser";
 import {
   ConflictPair,
   ConflictScanResult,
@@ -9,8 +9,8 @@ import {
   ParsedConflictDiagnostic,
   ParsedTailwindDiagnostic,
   SkippedDiagnostic,
-} from '../types/diagnosticTypes';
-import { Logger } from '../utils/logger';
+} from "../types/diagnosticTypes";
+import { Logger } from "../utils/logger";
 
 /**
  * Determines whether a diagnostic is *likely* to originate from the
@@ -29,10 +29,18 @@ import { Logger } from '../utils/logger';
  *     configurations omit it) are still allowed through to the parser —
  *     the parser's strict message-shape check is the real safety net,
  *     since no other extension is likely to emit this exact phrasing.
+ *
+ * Exported so providers/codeActionProvider.ts can apply the exact same
+ * source check before offering a Quick Fix — one source of truth rather
+ * than a second, potentially-drifting copy of this logic.
  */
-function isLikelyTailwindDiagnostic(diagnostic: vscode.Diagnostic): boolean {
+export function isLikelyTailwindDiagnostic(
+  diagnostic: vscode.Diagnostic,
+): boolean {
   if (diagnostic.source) {
-    return diagnostic.source.toLowerCase().includes(TAILWIND_DIAGNOSTIC_SOURCE_HINT);
+    return diagnostic.source
+      .toLowerCase()
+      .includes(TAILWIND_DIAGNOSTIC_SOURCE_HINT);
   }
   // No source metadata present — defer the decision to message-shape parsing.
   return true;
@@ -55,7 +63,7 @@ function isLikelyTailwindDiagnostic(diagnostic: vscode.Diagnostic): boolean {
  */
 export function scanTailwindDiagnostics(
   document: vscode.TextDocument,
-  logger: Logger
+  logger: Logger,
 ): DiagnosticScanResult {
   const allDiagnostics = vscode.languages.getDiagnostics(document.uri);
 
@@ -85,20 +93,22 @@ export function scanTailwindDiagnostics(
       continue;
     }
 
-    if (diagnostic.source?.toLowerCase().includes(TAILWIND_DIAGNOSTIC_SOURCE_HINT)) {
+    if (
+      diagnostic.source?.toLowerCase().includes(TAILWIND_DIAGNOSTIC_SOURCE_HINT)
+    ) {
       skipped.push({
         diagnostic,
-        reason: 'Message did not match any known Tailwind warning format.',
+        reason: "Message did not match any known Tailwind warning format.",
       });
       logger.warn(
-        `Skipped unparsable Tailwind diagnostic: "${diagnostic.message}"`
+        `Skipped unparsable Tailwind diagnostic: "${diagnostic.message}"`,
       );
     }
   }
 
   logger.info(
     `Optimization scan complete: ${parsed.length} parsed, ${skipped.length} skipped, ` +
-      `${allDiagnostics.length} total diagnostics inspected.`
+      `${allDiagnostics.length} total diagnostics inspected.`,
   );
 
   return { parsed, skipped };
@@ -122,7 +132,7 @@ export function scanTailwindDiagnostics(
  */
 export function scanTailwindConflicts(
   document: vscode.TextDocument,
-  logger: Logger
+  logger: Logger,
 ): ConflictScanResult {
   const allDiagnostics = vscode.languages.getDiagnostics(document.uri);
   const candidates: ParsedConflictDiagnostic[] = [];
@@ -163,7 +173,8 @@ export function scanTailwindConflicts(
       }
 
       const distance = Math.abs(
-        other.diagnostic.range.start.line - candidate.diagnostic.range.start.line
+        other.diagnostic.range.start.line -
+          candidate.diagnostic.range.start.line,
       );
 
       if (distance < bestDistance) {
@@ -183,7 +194,7 @@ export function scanTailwindConflicts(
 
   logger.info(
     `Conflict scan complete: ${pairs.length} paired, ${unpaired.length} unpaired, ` +
-      `${candidates.length} total conflict diagnostics found.`
+      `${candidates.length} total conflict diagnostics found.`,
   );
 
   return { pairs, unpaired };
