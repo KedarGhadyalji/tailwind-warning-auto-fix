@@ -2,8 +2,9 @@
 
 Automatically fix every Tailwind CSS optimization warning in the active file with a single command — no more clicking Quick Fix one class at a time.
 
-![Version](https://img.shields.io/badge/version-0.7.0-blue)
+![Version](https://img.shields.io/badge/version-0.8.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+[![CI](https://github.com/KedarGhadyalji/tailwind-warning-auto-fix/actions/workflows/ci.yml/badge.svg)](https://github.com/KedarGhadyalji/tailwind-warning-auto-fix/actions/workflows/ci.yml)
 
 ---
 
@@ -78,7 +79,7 @@ Tailwind CSS IntelliSense produces two distinct kinds of warnings, and even thou
 ### From a `.vsix` file
 
 ```bash
-code --install-extension tailwind-warning-auto-fix-0.7.0.vsix
+code --install-extension tailwind-warning-auto-fix-0.8.0.vsix
 ```
 
 ---

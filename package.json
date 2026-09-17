@@ -2,7 +2,7 @@
   "name": "tailwind-warning-auto-fix",
   "displayName": "Tailwind Warning Auto-Fix",
   "description": "Automatically fixes every Tailwind CSS IntelliSense optimization warning in the active file with one command — no more clicking Quick Fix one class at a time.",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "publisher": "KedarGhadyalji",
   "engines": {
     "vscode": "^1.90.0"

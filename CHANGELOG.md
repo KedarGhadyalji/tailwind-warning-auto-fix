@@ -9,9 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned (in priority order)
 
-- CI via GitHub Actions
 - Workspace-wide "Fix All" command
 - Status bar item that only appears when warnings exist in the active file
+
+## [0.8.0]
+
+### Added
+
+- **CI via GitHub Actions** (`.github/workflows/ci.yml`): runs `npm run compile`, `npm run lint`, and `npm test` on every push and pull request to `main`, across **Ubuntu, Windows, and macOS**. The cross-platform matrix is a deliberate choice, not boilerplate — this project has already hit two real Windows-only bugs (a `Buffer`/`@types/node` resolution issue, and a `tsconfig.json` `extends` relative-path miscalculation in VS Code's TypeScript language service) that single-platform local testing didn't catch.
+- A second job packages the extension (`vsce package`) after the test matrix passes and uploads the resulting `.vsix` as a downloadable build artifact on every run.
+- CI status badge added to the README.
 
 ## [0.7.0]
 

@@ -21,7 +21,7 @@ Press `F5` in VS Code to launch the Extension Development Host and try your chan
    npm run lint
    npm test
    ```
-   All three must pass cleanly with zero errors.
+   All three must pass cleanly with zero errors. CI (GitHub Actions) runs the same three checks automatically on every push and PR, across Ubuntu, Windows, and macOS — running them locally first just saves a round-trip.
 3. **Match the existing architecture.** Specifically:
    - Business logic belongs in `services/`, never in `commands/`.
    - Anything touching diagnostic message parsing belongs in `parsers/` and must remain free of `vscode` imports (pure functions only).
