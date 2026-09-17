@@ -1,0 +1,72 @@
+name: CI
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Runs on all three platforms VS Code itself supports. This isn't
+  # boilerplate caution — this exact project has already hit two real,
+  # Windows-only bugs (a Node `Buffer`/@types resolution issue, and a
+  # tsconfig `extends` relative-path miscalculation in VS Code's
+  # TypeScript language service) that never surfaced in single-platform
+  # local testing. A single-OS CI matrix would not have caught either one.
+  test:
+    name: Test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile (production build)
+        run: npm run compile
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+  # Packaging is platform-independent (just zips compiled output), so this
+  # only needs to run once, on the fastest runner — and only after the
+  # full test matrix above has already passed on every platform.
+  package:
+    name: Package .vsix
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Package extension
+        run: npx vsce package
+
+      - name: Upload .vsix as a build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: tailwind-warning-auto-fix-vsix
+          path: "*.vsix"
