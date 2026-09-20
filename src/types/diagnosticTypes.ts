@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
 /**
  * Represents a single Tailwind optimization warning after it has been
@@ -80,10 +80,39 @@ export interface ConflictScanResult {
 }
 
 /** The user's explicit choice for a single paired conflict. */
-export type PairedConflictResolution = 'keepA' | 'keepB' | 'skip';
+export type PairedConflictResolution = "keepA" | "keepB" | "skip";
 
 /** The user's explicit choice for a single unpaired conflict. */
-export type SingleConflictResolution = 'remove' | 'skip';
+export type SingleConflictResolution = "remove" | "skip";
+
+/**
+ * A ConflictPair tagged with the document it was found in. Needed for
+ * workspace-wide resolution, where conflicts from many different files must
+ * be grouped and resolved TOGETHER (asking once per unique class-name pair
+ * across the whole workspace, not once per file) before being applied back
+ * to their respective, individual files.
+ *
+ * The single-file command also uses this (with every entry sharing the
+ * same uri) so both commands share one conflict-resolution implementation
+ * — see services/conflictResolutionService.ts.
+ */
+export interface LocatedConflictPair {
+  readonly uri: vscode.Uri;
+  readonly pair: ConflictPair;
+}
+
+/** Same idea as LocatedConflictPair, for the unpaired-conflict case. */
+export interface LocatedConflictSingle {
+  readonly uri: vscode.Uri;
+  readonly single: ParsedConflictDiagnostic;
+}
+
+/** A single class removal (from conflict resolution), located to the file
+ *  it applies to. */
+export interface LocatedRemoval {
+  readonly uri: vscode.Uri;
+  readonly range: vscode.Range;
+}
 
 /**
  * The final outcome after a WorkspaceEdit has been attempted, used to build

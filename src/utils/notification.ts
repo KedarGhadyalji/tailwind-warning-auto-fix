@@ -1,5 +1,5 @@
-import * as vscode from 'vscode';
-import { Messages } from '../constants/messages';
+import * as vscode from "vscode";
+import { Messages } from "../constants/messages";
 
 /**
  * Thin wrapper around vscode.window.show*Message calls.
@@ -10,12 +10,33 @@ import { Messages } from '../constants/messages';
  */
 
 export async function showConfirmApplyDialog(
-  warningCount: number
+  warningCount: number,
 ): Promise<boolean> {
   const selection = await vscode.window.showInformationMessage(
     `${Messages.confirmApplyTitle(warningCount)} ${Messages.confirmApplyDetail}`,
     { modal: true },
-    Messages.confirmApplyButton
+    Messages.confirmApplyButton,
+  );
+
+  return selection === Messages.confirmApplyButton;
+}
+
+/**
+ * Same idea as showConfirmApplyDialog, for the workspace-wide command —
+ * separate function (rather than a parameter) because the wording is
+ * meaningfully different: it names a file count and includes an explicit
+ * version-control caution, since this command saves files automatically
+ * and many of them won't have been open in a visible tab beforehand.
+ */
+export async function showConfirmWorkspaceApplyDialog(
+  warningCount: number,
+  fileCount: number,
+): Promise<boolean> {
+  const selection = await vscode.window.showInformationMessage(
+    `${Messages.confirmWorkspaceApplyTitle(warningCount, fileCount)} ` +
+      `${Messages.confirmWorkspaceApplyDetail}`,
+    { modal: true },
+    Messages.confirmApplyButton,
   );
 
   return selection === Messages.confirmApplyButton;
@@ -43,27 +64,27 @@ export function showError(message: string): void {
  */
 export async function showConflictResolutionPick(
   classA: string,
-  classB: string
-): Promise<'keepA' | 'keepB' | 'skip'> {
+  classB: string,
+): Promise<"keepA" | "keepB" | "skip"> {
   const keepAOption = `Keep '${classA}', remove '${classB}'`;
   const keepBOption = `Keep '${classB}', remove '${classA}'`;
-  const skipOption = 'Skip — leave both as-is';
+  const skipOption = "Skip — leave both as-is";
 
   const selection = await vscode.window.showQuickPick(
     [keepAOption, keepBOption, skipOption],
     {
       placeHolder: `'${classA}' and '${classB}' set the same CSS property — which should stay?`,
       ignoreFocusOut: true,
-    }
+    },
   );
 
   if (selection === keepAOption) {
-    return 'keepA';
+    return "keepA";
   }
   if (selection === keepBOption) {
-    return 'keepB';
+    return "keepB";
   }
-  return 'skip';
+  return "skip";
 }
 
 /**
@@ -73,15 +94,18 @@ export async function showConflictResolutionPick(
  */
 export async function showSingleConflictPick(
   flaggedClass: string,
-  conflictsWith: string
-): Promise<'remove' | 'skip'> {
+  conflictsWith: string,
+): Promise<"remove" | "skip"> {
   const removeOption = `Remove '${flaggedClass}'`;
-  const skipOption = 'Skip — leave as-is';
+  const skipOption = "Skip — leave as-is";
 
-  const selection = await vscode.window.showQuickPick([removeOption, skipOption], {
-    placeHolder: `'${flaggedClass}' conflicts with '${conflictsWith}' (only one side detected)`,
-    ignoreFocusOut: true,
-  });
+  const selection = await vscode.window.showQuickPick(
+    [removeOption, skipOption],
+    {
+      placeHolder: `'${flaggedClass}' conflicts with '${conflictsWith}' (only one side detected)`,
+      ignoreFocusOut: true,
+    },
+  );
 
-  return selection === removeOption ? 'remove' : 'skip';
+  return selection === removeOption ? "remove" : "skip";
 }
