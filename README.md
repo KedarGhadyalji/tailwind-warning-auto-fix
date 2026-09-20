@@ -2,7 +2,7 @@
 
 Automatically fix every Tailwind CSS optimization warning in the active file with a single command — no more clicking Quick Fix one class at a time.
 
-![Version](https://img.shields.io/badge/version-0.8.0-blue)
+![Version](https://img.shields.io/badge/version-0.10.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 [![CI](https://github.com/KedarGhadyalji/tailwind-warning-auto-fix/actions/workflows/ci.yml/badge.svg)](https://github.com/KedarGhadyalji/tailwind-warning-auto-fix/actions/workflows/ci.yml)
 
@@ -43,7 +43,7 @@ It does **not** reimplement Tailwind's optimization logic — it's a thin, safe 
 - ✅ Uses each diagnostic's exact source range — never a document-wide text search, so it's safe even when the same class string appears multiple times in a file
 - ✅ Works in any file type supported by Tailwind CSS IntelliSense (JS, TS, JSX, TSX, HTML, Vue, Astro, Svelte, PHP, Blade, MDX, and more) — no hardcoded language list
 - ✅ Status bar button and keyboard shortcut available immediately on VS Code startup — no need to run the command once first
-- ✅ The status bar button only appears when the workspace actually looks like a Tailwind project — no clutter in unrelated projects
+- ✅ The status bar button only appears when the workspace actually looks like a Tailwind project **and** the active file currently has warnings — no clutter in unrelated projects or in clean files, and it updates live as you switch files or fix warnings
 - ✅ **Quick Fix / lightbulb integration** — fix a single warning inline via VS Code's native Quick Fix menu (`Ctrl+.` / `Cmd+.`), no need to run the batch command for a one-off fix
 - ✅ Gracefully skips and reports any warning it can't safely parse, instead of failing the whole batch
 
@@ -79,7 +79,7 @@ Tailwind CSS IntelliSense produces two distinct kinds of warnings, and even thou
 ### From a `.vsix` file
 
 ```bash
-code --install-extension tailwind-warning-auto-fix-0.8.0.vsix
+code --install-extension tailwind-warning-auto-fix-0.10.2.vsix
 ```
 
 ---
@@ -115,9 +115,28 @@ All three trigger the identical flow:
 
 ## Commands
 
-| Command                      | Shortcut                   | Description                                                                                                                                                                                                                                                                                                       |
-| ---------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Tailwind: Fix All Warnings` | `Ctrl+Alt+G` / `Cmd+Alt+G` | Scans the active file for both optimization warnings and class conflicts. Applies optimizations automatically (after one confirmation) and walks through conflicts one at a time via Quick Pick — all combined into a single, atomic edit. Also available via the **✨ Fix Tailwind Warnings** status bar button. |
+| Command                                   | Shortcut                        | Description                                                                                                                                                                                                                                                                                                       |
+| ----------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Tailwind: Fix All Warnings`              | `Ctrl+Alt+G` / `Cmd+Alt+G`      | Scans the active file for both optimization warnings and class conflicts. Applies optimizations automatically (after one confirmation) and walks through conflicts one at a time via Quick Pick — all combined into a single, atomic edit. Also available via the **✨ Fix Tailwind Warnings** status bar button. |
+| `Tailwind: Fix All Warnings in Workspace` | _(none — Command Palette only)_ | Same fix logic, applied across every candidate file in the workspace, not just the active one. See below for what this actually does and its caveats.                                                                                                                                                             |
+
+---
+
+## Fix All Warnings in Workspace
+
+Run this from the Command Palette (`Cmd/Ctrl+Shift+P`) when you want to fix Tailwind warnings across your whole project in one pass, rather than file by file.
+
+**What it does:**
+
+1. Finds candidate files (HTML, JS/TS/JSX/TSX, Vue, Svelte, Astro, PHP, MDX, Markdown — excluding `node_modules`, `dist`, `out`, `build`, `.git`, `.next`, `.nuxt`), capped at 500 files.
+2. Opens each one and does a best-effort wait for Tailwind CSS IntelliSense to analyze it, with a cancellable progress notification.
+3. Shows **one** confirmation dialog with the accurate total count of optimization warnings across every file found.
+4. Resolves conflicts using the same `conflictResolutionStrategy` setting as the single-file command — but deduplicated **globally**: the same conflicting class pair appearing in 50 files is asked about once, not 50 times.
+5. Applies and **saves** every modified file automatically.
+
+**Before you run this:** commit your current changes to version control first. Unlike the single-file command, this saves files directly — including files you didn't have open — so there's no "review in the editor before saving" step. The confirmation dialog repeats this reminder.
+
+**A real limitation worth knowing:** there's no public VS Code API for "the language server has finished analyzing this file," so the wait for each file's diagnostics is a short timeout (500ms), not a guarantee. On a very large file, or if the language server is unusually slow to start, some warnings might not be caught on a given run. Re-running the command is always safe and will pick up anything missed the first time.
 
 ---
 
@@ -203,19 +222,16 @@ This extension never re-implements Tailwind's class-optimization logic, parses J
 
 ## Roadmap
 
-Planned for future versions:
+Every item from the original planned list is now shipped: workspace-wide fixing, CodeActionProvider/lightbulb integration, a unit test suite, CI via GitHub Actions, and status-bar visibility tied to both the project and the active file's actual warnings.
 
-- [ ] Workspace-wide "Fix All" command
-- [ ] Folder-level fixing
-- [ ] Multi-root workspace support
-- [ ] `CodeActionProvider` integration (fix warnings via the lightbulb menu directly)
-- [ ] Progress notification for large files
-- [ ] Marketplace icon and branding polish
+Ideas for future versions, unordered:
+
+- [ ] Multi-root workspace support — likely already works for the most part, since `vscode.workspace.findFiles` searches every workspace folder by default, but hasn't been explicitly tested against a multi-root setup
+- [ ] Folder-level fixing (right-click a folder in the Explorer → fix just that subtree, rather than the whole workspace)
 - [ ] Optional telemetry
 - [ ] Localization
-- [ ] Unit and integration test suite
-- [ ] CI/CD via GitHub Actions
 - [ ] Semantic release automation
+- [ ] Status bar warning count (e.g. "✨ Fix Tailwind Warnings (3)") instead of just visibility
 
 ---
 

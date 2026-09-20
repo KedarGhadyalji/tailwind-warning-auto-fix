@@ -2,7 +2,7 @@
   "name": "tailwind-warning-auto-fix",
   "displayName": "Tailwind Warning Auto-Fix",
   "description": "Automatically fixes every Tailwind CSS IntelliSense optimization warning in the active file with one command — no more clicking Quick Fix one class at a time.",
-  "version": "0.8.0",
+  "version": "0.10.2",
   "publisher": "KedarGhadyalji",
   "engines": {
     "vscode": "^1.90.0"
@@ -44,6 +44,12 @@
       {
         "command": "tailwindAutoOptimizer.fixAllWarnings",
         "title": "Fix All Warnings",
+        "category": "Tailwind",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "tailwindAutoOptimizer.fixAllWarningsInWorkspace",
+        "title": "Fix All Warnings in Workspace",
         "category": "Tailwind",
         "icon": "$(sparkle)"
       }
@@ -108,7 +114,7 @@
     "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "^7.16.0",
     "@typescript-eslint/parser": "^7.16.0",
-    "@vscode/vsce": "^2.29.0",
+    "@vscode/vsce": "^4.0.0",
     "eslint": "^8.57.0",
     "ovsx": "^1.0.2",
     "typescript": "^5.5.0"

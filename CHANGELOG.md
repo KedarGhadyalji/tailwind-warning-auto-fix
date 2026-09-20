@@ -7,10 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned (in priority order)
+This completes every item from the original planned roadmap. Future work is open-ended from here.
 
-- Workspace-wide "Fix All" command
-- Status bar item that only appears when warnings exist in the active file
+### Flagged, not yet done
+
+- `eslint` is still on v8; v9/v10 exist with a breaking flat-config migration. Deliberately not touched in the 0.10.1 dependency audit — it's a much bigger, riskier change than the others and deserves its own pass.
+- `@typescript-eslint` (pinned `^7.16.0`) officially supports TypeScript `<5.6.0`; a fresh `npm install` resolves `typescript` to `5.9.x` under the current `^5.5.0` range, which triggers an unsupported-version warning from `@typescript-eslint/typescript-estree` on every lint run. Not currently breaking anything (lint still passes clean), but worth a version bump at some point.
+
+## [0.10.2]
+
+### Fixed
+
+- Added an explicit `"types": ["node"]` to the root `tsconfig.json`'s `compilerOptions` — the same defensive fix already applied to `test/tsconfig.json` earlier, for the same class of symptom: VS Code's live TypeScript language service occasionally shows false-positive "Cannot find name 'setTimeout'/'clearTimeout'" errors for `src/services/workspaceScanService.ts` even though the real build (`npm run compile`) has always succeeded. If this still occurs after applying this fix, it's stale editor state, not a real issue — reload the window / restart the TS server.
+
+## [0.10.1]
+
+### Fixed
+
+- **Dependency security audit**: resolved all 8 `npm audit` findings (2 moderate, 6 high), all in transitive devDependencies (`eslint`, `@vscode/vsce`, `ovsx`) — none in runtime code, since this extension still has zero runtime dependencies. `@vscode/vsce` bumped 2.x → 4.0.0 to fully clear the remainder (removes `fast-uri` and `js-yaml` from the tree entirely); verified the full pipeline (compile, lint, test, package) still behaves identically afterward.
+- **Workspace-wide scan truncation is no longer silent**: a workspace with more than 500 matching files was previously scanning only the first 500 with zero indication anything was cut off. Now shows a warning naming the limit and suggesting re-running to continue.
+
+### Changed
+
+- Extracted `canonicalPairKey` out of `conflictResolutionService.ts` into a new, genuinely dependency-free `src/utils/conflictKey.ts` — the rest of that file transitively imports the real `vscode` module (via `notification.ts`) and so can't run under the unit test suite, but this one pure piece of logic now can. 4 new tests.
+
+## [0.10.0]
+
+### Added
+
+- The status bar button now only appears when the **currently active file** actually has Tailwind warnings in it, layered on top of the existing project-level detection (v0.5.0). Updates live: switching editors or fixing/introducing warnings while typing shows or hides the button immediately, without needing to switch files or reload.
+
+### Changed
+
+- `extension.ts` now also listens to `onDidChangeActiveTextEditor` and `onDidChangeDiagnostics` (the latter filtered to the active document's URI, since it fires globally across the whole workspace) to keep visibility current. The more expensive project-level check remains cached and is only re-run on startup or workspace folder changes, as before.
+
+## [0.9.0]
+
+### Added
+
+- **`Tailwind: Fix All Warnings in Workspace`** — scans every candidate file across the workspace (not just the active one) and fixes them all. Command Palette only, deliberately with no keybinding or status bar button, since it's a bigger-consequence action than the single-file command. Shows one confirmation with the accurate total count across all files, including an explicit reminder to commit to version control first (since it saves files automatically). Conflict-pair deduplication now works globally: the same conflicting pair appearing across many files is asked about once, not once per file.
+- File discovery excludes `node_modules`, `dist`, `out`, `build`, `.git`, `.next`, `.nuxt`, and caps at 500 candidate files, to keep worst-case scan time bounded on large repositories. The scan is cancellable via a progress notification.
+- New `src/services/conflictResolutionService.ts`, extracted from what was previously duplicated logic inside `fixAllCommand.ts` — now the single shared implementation used by both the single-file and workspace-wide commands.
+- New `src/services/workspaceScanService.ts` for candidate file discovery and best-effort diagnostic waiting.
+
+### Known limitation
+
+- There's no public VS Code API for "the language server has finished analyzing this file", so waiting for a freshly-opened file's diagnostics is a timeout-based heuristic (500ms), not a guarantee. A very large file or an unusually slow language server startup could mean a file's warnings aren't all caught on a given run — re-running the command is always safe and will pick up anything missed.
 
 ## [0.8.0]
 
